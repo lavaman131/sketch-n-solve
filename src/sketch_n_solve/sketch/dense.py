@@ -2,6 +2,7 @@ from typing import Optional, Tuple
 import numpy as np
 import scipy
 import scipy.linalg
+import scipy.sparse
 
 
 def uniform(
@@ -33,12 +34,9 @@ def uniform(
 
     rng = np.random.default_rng(seed)
 
-    S = np.zeros((k, n))
-
     r = np.arange(k)
     i = rng.integers(n, size=k)
-    S[r] = A[i].copy()
-    S[r, i] = 1.0
+    S = scipy.sparse.csr_matrix((np.ones(k), (r, i)), shape=(k, n))
 
     scale = np.sqrt(n / k)
     return A, S * scale

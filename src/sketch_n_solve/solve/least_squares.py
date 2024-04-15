@@ -4,8 +4,8 @@ from . import Solver
 
 
 class LeastSquares(Solver):
-    def __init__(self, A: np.ndarray, b: np.ndarray, sketch: Sketch) -> None:
-        super().__init__(A, b, sketch)
+    def __init__(self, sketch: Sketch) -> None:
+        super().__init__(sketch)
 
-    def solve(self):
+    def __call__(self, A: np.ndarray, b: np.ndarray):
         pass

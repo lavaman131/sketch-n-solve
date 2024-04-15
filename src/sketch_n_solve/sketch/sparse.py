@@ -5,7 +5,7 @@ import scipy.sparse
 
 def clarkson_woodruff(
     A: np.ndarray, k: int, seed: Optional[int] = 42
-) -> Tuple[np.ndarray, scipy.sparse.csc_array]:
+) -> Tuple[np.ndarray, np.ndarray]:
     """Implements Clarkson-Woodruff sketch.
 
     Parameters
