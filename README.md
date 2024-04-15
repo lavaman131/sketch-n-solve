@@ -1,4 +1,4 @@
-# Sketch and Solve
+# Sketch 'n Solve
 
 <p align="center">
     <img src="./assets/logo.jpg" style="width: 40%">
