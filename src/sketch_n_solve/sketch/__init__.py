@@ -1,5 +1,5 @@
 # from sketch_n_solve import __package__
-from typing import Any, Callable, Optional, Tuple, TypeAlias, Union
+from typing import Any, Callable, Optional, Set, Tuple, TypeAlias
 import numpy as np
 import importlib
 
@@ -7,6 +7,9 @@ sketch_fn_type: TypeAlias = Callable[..., Tuple[np.ndarray, np.ndarray]]
 
 
 class Sketch:
+    dense_sketch_fns: Set[str] = {"uniform_dense", "normal", "hadamard"}
+    sparse_sketch_fns: Set[str] = {"uniform_sparse", "clarkson_woodruff", "sparse_sign"}
+
     def __init__(
         self,
         sketch_fn: str,
@@ -17,20 +20,14 @@ class Sketch:
         Parameters
         ----------
         sketch_fn : str
-            The name of the sketch function. The available sketch functions are:
-            - "dense"
-                - "uniform"
-                - "normal"
-                - "hadamard"
-            - "sparse"
-                - "clarkson_woodruff"
+            The name of the sketch function. The available sketch functions are listed by using `self.list_available_sketch_fns`.
         seed : Optional[int], optional
             Random seed, by default 42.
         """
         self.sketch_fn = self._get_sketch_fn(sketch_fn)
         self.seed = seed
 
-    def __call__(self, A: np.ndarray, **kwargs: Any) -> np.ndarray:
+    def __call__(self, A: np.ndarray, **kwargs: Any) -> Tuple[np.ndarray, np.ndarray]:
         """Sketches the input matrix.
 
         Parameters
@@ -42,11 +39,21 @@ class Sketch:
 
         Returns
         -------
-        np.ndarray
-            The sketched matrix.
+        A, S : Tuple[np.ndarray, np.ndarray]
+            The input matrix, padded with zeros if needed, and the sketch matrix.
         """
-        A, sketch_matrix = self.sketch_fn(A, seed=self.seed, **kwargs)
-        return sketch_matrix @ A
+        A, S = self.sketch_fn(A, seed=self.seed, **kwargs)
+        return A, S
+
+    @staticmethod
+    def list_available_sketch_fns() -> None:
+        """List the available sketch functions."""
+        print("Dense sketch functions:")
+        for sketch_fn in Sketch.dense_sketch_fns:
+            print(f"- {sketch_fn}")
+        print("\nSparse sketch functions:")
+        for sketch_fn in Sketch.sparse_sketch_fns:
+            print(f"- {sketch_fn}")
 
     def _get_sketch_fn(self, sketch_fn: str) -> sketch_fn_type:
         """Get the sketch function based on the sketch function name.
@@ -67,9 +74,9 @@ class Sketch:
             If the sketch function is not available.
         """
         # Import the module based on the sketch function name
-        if sketch_fn in {"uniform", "normal", "hadamard"}:
+        if sketch_fn in Sketch.dense_sketch_fns:
             module_name = ".dense"
-        elif sketch_fn in {"clarkson_woodruff", "sparse_sign"}:
+        elif sketch_fn in Sketch.sparse_sketch_fns:
             module_name = ".sparse"
         else:
             raise ValueError(f"Unknown sketch function: {self.sketch_fn}")

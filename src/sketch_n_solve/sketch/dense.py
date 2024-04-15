@@ -1,15 +1,13 @@
 from typing import Optional, Tuple
 import numpy as np
-import scipy
-import scipy.linalg
-import scipy.sparse
+import scipy.linalg as SLA
 import math
 
 
-def uniform(
+def uniform_dense(
     A: np.ndarray, k: int, seed: Optional[int] = 42
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Implements uniform sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
+    """Implements uniform sketch as described in https://arxiv.org/pdf/2302.11474.pdf.
 
     Parameters
     ----------
@@ -35,12 +33,9 @@ def uniform(
 
     rng = np.random.default_rng(seed)
 
-    r = np.arange(k)
-    i = rng.integers(n, size=k)
-    S = scipy.sparse.csr_matrix((np.ones(k), (r, i)), shape=(k, n))
+    S = rng.uniform(-1, 1, size=(k, n))
 
-    scale = np.sqrt(n / k)
-    return A, S * scale
+    return A, S
 
 
 def normal(
@@ -105,7 +100,7 @@ def hadamard(
     rng = np.random.default_rng(seed)
     n_padded = 2 ** math.ceil(np.log2(n))
     A_padded = np.pad(A, ((0, n_padded - n), (0, 0)), "constant")
-    H = scipy.linalg.hadamard(n=n_padded, dtype=np.float64)  # type: ignore
+    H = SLA.hadamard(n=n_padded, dtype=np.float64)  # type: ignore
     D = np.diag(np.random.choice([-1, 1], size=n_padded))
     r = rng.integers(n_padded, size=k)
     S = H[r] @ H @ D / np.sqrt(k)

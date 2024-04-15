@@ -3,6 +3,43 @@ import numpy as np
 import scipy.sparse
 
 
+def uniform_sparse(
+    A: np.ndarray, k: int, seed: Optional[int] = 42
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Implements uniform sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
+
+    Parameters
+    ----------
+    A : (n, d) np.ndarray
+        The input matrix.
+    k : int
+        The number of rows in the sketch matrix.
+    seed : int, optional
+        Random seed, by default 42.
+
+    Returns
+    -------
+    A : (n, d) np.ndarray
+        The input matrix.
+    S : (k, n) np.ndarray
+        The sketch matrix.
+    """
+
+    n, d = A.shape
+
+    assert k < n, "k should be less than the number of rows of the matrix."
+    assert k > 0, "k should be greater than 0."
+
+    rng = np.random.default_rng(seed)
+
+    r = np.arange(k)
+    i = rng.integers(n, size=k)
+    S = scipy.sparse.csr_matrix((np.ones(k), (r, i)), shape=(k, n))
+
+    scale = np.sqrt(n / k)
+    return A, S * scale
+
+
 def clarkson_woodruff(
     A: np.ndarray, k: int, seed: Optional[int] = 42
 ) -> Tuple[np.ndarray, np.ndarray]:
