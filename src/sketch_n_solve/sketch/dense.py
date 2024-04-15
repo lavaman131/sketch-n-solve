@@ -3,16 +3,17 @@ import numpy as np
 import scipy
 import scipy.linalg
 import scipy.sparse
+import math
 
 
 def uniform(
     A: np.ndarray, k: int, seed: Optional[int] = 42
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Implements uniform sketch.
+    """Implements uniform sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
 
     Parameters
     ----------
-    A : np.ndarray
+    A : (n, d) np.ndarray
         The input matrix.
     k : int
         The number of rows in the sketch matrix.
@@ -21,9 +22,9 @@ def uniform(
 
     Returns
     -------
-    A : np.ndarray
+    A : (n, d) np.ndarray
         The input matrix.
-    S : np.ndarray
+    S : (k, n) np.ndarray
         The sketch matrix.
     """
 
@@ -45,11 +46,11 @@ def uniform(
 def normal(
     A: np.ndarray, k: int, seed: Optional[int] = 42
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Implements normal sketch.
+    """Implements normal sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
 
     Parameters
     ----------
-    A : np.ndarray
+    A : (n, d) np.ndarray
         The input matrix.
     k : int
         The number of rows in the sketch matrix.
@@ -58,9 +59,9 @@ def normal(
 
     Returns
     -------
-    A : np.ndarray
+    A : (n, d) np.ndarray
         The input matrix.
-    S : np.ndarray
+    S : (k, n) np.ndarray
         The sketch matrix.
     """
 
@@ -79,11 +80,11 @@ def normal(
 def hadamard(
     A: np.ndarray, k: int, seed: Optional[int] = 42
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Implements Hadamard sketch.
+    r"""Implements Hadamard sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
 
     Parameters
     ----------
-    A : np.ndarray
+    A : (n, d) np.ndarray
         The input matrix.
     k : int
         The number of rows in the sketch matrix.
@@ -92,20 +93,20 @@ def hadamard(
 
     Returns
     -------
-    A_padded : np.ndarray
-        The input matrix padded to the nearest power of 2 with zeros.
-    S : np.ndarray
-        The sketch matrix.
+    A_padded (n_padded, d) : np.ndarray
+        The input matrix padded to the nearest power of 2 with zeros where n_padded = :math:`2^{\lceil \log_2 n \rceil}`.
+    S : (k, n_padded) np.ndarray
+        The sketch matrix where n_padded = :math:`2^{\lceil \log_2 n \rceil}`.
     """
 
     n, d = A.shape
     assert k < n, "k should be less than the number of rows of the matrix."
     assert k > 0, "k should be greater than 0."
     rng = np.random.default_rng(seed)
-    padded_n = 2 ** round(np.log2(n))
-    A_padded = np.pad(A, ((0, padded_n - n), (0, 0)), "constant")
-    H = scipy.linalg.hadamard(n=padded_n, dtype=np.float64)  # type: ignore
-    D = np.diag(np.random.choice([-1, 1], size=padded_n))
-    r = rng.integers(padded_n, size=k)
+    n_padded = 2 ** math.ceil(np.log2(n))
+    A_padded = np.pad(A, ((0, n_padded - n), (0, 0)), "constant")
+    H = scipy.linalg.hadamard(n=n_padded, dtype=np.float64)  # type: ignore
+    D = np.diag(np.random.choice([-1, 1], size=n_padded))
+    r = rng.integers(n_padded, size=k)
     S = H[r] @ H @ D / np.sqrt(k)
     return A_padded, S
