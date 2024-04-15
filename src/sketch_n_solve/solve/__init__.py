@@ -7,6 +7,13 @@ from sketch_n_solve.sketch import Sketch
 
 class Solver(ABC):
     def __init__(self, sketch: Sketch) -> None:
+        """Solver class.
+
+        Parameters
+        ----------
+        sketch : Sketch
+            The sketch object.
+        """
         self.sketch = sketch
 
     @abstractmethod

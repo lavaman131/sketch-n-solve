@@ -14,14 +14,60 @@ class Sketch:
         sketch_fn: str,
         seed: Optional[int] = 42,
     ) -> None:
+        """Sketch class.
+
+        Parameters
+        ----------
+        sketch_fn : str
+            The name of the sketch function. The available sketch functions are:
+            - "dense"
+                - "uniform"
+                - "normal"
+                - "hadamard"
+            - "sparse"
+                - "clarkson_woodruff"
+        seed : Optional[int], optional
+            Random seed, by default 42.
+        """
         self.sketch_fn = self._get_sketch_fn(sketch_fn)
         self.seed = seed
 
     def __call__(self, A: np.ndarray, k: int) -> np.ndarray:
+        """Sketches the input matrix.
+
+        Parameters
+        ----------
+        A : np.ndarray
+            The input matrix.
+        k : int
+            The number of rows in the sketch matrix.
+
+        Returns
+        -------
+        np.ndarray
+            The sketched matrix.
+        """
         A, sketch_matrix = self.sketch_fn(A, k, self.seed)
         return sketch_matrix @ A
 
     def _get_sketch_fn(self, sketch_fn: str) -> sketch_fn_type:
+        """Get the sketch function based on the sketch function name.
+
+        Parameters
+        ----------
+        sketch_fn : str
+            The name of the sketch function.
+
+        Returns
+        -------
+        sketch_fn_type
+            The sketch function.
+
+        Raises
+        ------
+        ValueError
+            If the sketch function is not available.
+        """
         # Import the module based on the sketch function name
         if sketch_fn in {"uniform", "normal", "hadamard"}:
             module_name = ".dense"

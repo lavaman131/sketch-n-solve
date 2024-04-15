@@ -5,6 +5,13 @@ from . import Solver
 
 class LeastSquares(Solver):
     def __init__(self, sketch: Sketch) -> None:
+        """Least squares solver.
+
+        Parameters
+        ----------
+        sketch : Sketch
+            The sketch object.
+        """
         super().__init__(sketch)
 
     def __call__(self, A: np.ndarray, b: np.ndarray):
