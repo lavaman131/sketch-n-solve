@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "sketch_n_solve"
+description = "Common sketch matrix construction methods for randomized numerical linear algebra (RandNLA)."
+authors = ["lavaman131 <lavaalex3@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+version = "0.0.1"
+packages = [{ include = "sketch_n_solve", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "^1.26.4"
+scipy = "^1.13.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
