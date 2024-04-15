@@ -78,6 +78,6 @@ def sparse_sign(
     data = rng.choice([-1.0, 1.0], size=size)
     rows = rng.integers(d, size=size)
     cols = np.repeat(np.arange(n), zeta)
-    S = scipy.sparse.csc_array((data, (rows, cols)), shape=(d, n))
+    S = scipy.sparse.csr_array((data, (rows, cols)), shape=(d, n))
     S *= 1 / np.sqrt(zeta)
     return A, S
