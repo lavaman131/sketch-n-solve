@@ -1,5 +1,5 @@
 # Sketch and Solve
 
 <p align="center">
-    <img src="./assets/logo.png" style="width: 30%">
+    <img src="./assets/logo.jpg" style="width: 50%">
 </p>
