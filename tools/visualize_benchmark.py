@@ -16,7 +16,7 @@ def main() -> None:
     ax = fig.add_subplot(111)
 
     times = defaultdict(list)
-    condition_numbers = [1, 5, 10, 100, 1e3, 1e4, 1e5]
+    condition_numbers = [1, 5, 10, 100, 1e3, 1e4, 1e5, 1e10, 1e12]
 
     for method in metadata.keys():
         for trial in metadata[method]:

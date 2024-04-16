@@ -16,6 +16,8 @@ def main() -> None:
         {"m": 4000, "n": 50, "cond": 1e3},
         {"m": 4000, "n": 50, "cond": 1e4},
         {"m": 4000, "n": 50, "cond": 1e5},
+        {"m": 4000, "n": 50, "cond": 1e10},
+        {"m": 4000, "n": 50, "cond": 1e12},
     ]
     trials = [LeastSquaresProblemConfig(**kwarg) for kwarg in config]
     sketch_fn = "sparse_sign"
