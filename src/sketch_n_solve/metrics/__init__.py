@@ -50,12 +50,12 @@ def calculate_least_squares_metrics(
             n=config.n,
             cond=config.cond,
             beta=config.beta,
-            seed=lsq.sketch.seed,
+            seed=lsq.seed,
         )
         A, b, x, r_x = problem["A"], problem["b"], problem["x"], problem["r_x"]
         norm_r = SLA.norm(r_x)
-        x_hat_lstsq, time_elapsed_lstq = timer(SLA.lstsq)(A, b)
-        x_hat_lstsq = x_hat_lstsq[0]
+        lstsq_output, time_elapsed_lstq = timer(SLA.lstsq)(A, b)
+        x_hat_lstsq = lstsq_output[0]
         metadata["lstsq"].append({"norm_r": norm_r, "time_elapsed": time_elapsed_lstq})
         x_hat_sketch_and_precondition, time_elapsed_sketch_and_precondition = timer(
             lsq.sketch_and_precondition
@@ -69,7 +69,6 @@ def calculate_least_squares_metrics(
         metadata["sketch_and_apply"].append(
             {"norm_r": norm_r, "time_elapsed": time_elapsed_sketch_and_apply}
         )
-
         metrics["lstsq"].append(
             calculate_least_squares_error_metrics(A, b, x, x_hat_lstsq)
         )

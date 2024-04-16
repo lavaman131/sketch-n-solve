@@ -8,7 +8,18 @@ class Solver:
 
         Parameters
         ----------
-        sketch : Sketch
-            The sketch object.
+        sketch_fn : str
+            The sketch function.
+        seed : int
+            The seed for the random number generator.
+        **kwargs : Any
+            Additional arguments for the sketch function.
         """
-        self.sketch = Sketch(sketch_fn, seed)
+        self.seed = seed
+        self.sketch_fn = sketch_fn
+        self.sketch = Sketch(self.sketch_fn, self.seed, **kwargs)
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}(sketch_fn={self.sketch_fn}, seed={self.seed})"
+        )

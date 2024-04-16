@@ -20,7 +20,7 @@ class LeastSquares(Solver):
             The sketch object.
         """
         super().__init__(sketch, seed, **kwargs)
-        self.gaussian_sketch = Sketch("normal", seed)
+        self.gaussian_sketch = Sketch("normal", self.seed)
 
     def sketch_and_precondition(
         self,

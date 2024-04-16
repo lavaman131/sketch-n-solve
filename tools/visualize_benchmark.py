@@ -1,4 +1,5 @@
 from collections import defaultdict
+from pathlib import Path
 import pickle
 import matplotlib.pyplot as plt
 import scienceplots
@@ -7,9 +8,10 @@ plt.style.use(["science", "seaborn-v0_8-talk"])
 
 
 def main() -> None:
-    with open("metrics.pkl", "rb") as f:
+    output_dir = Path("outputs")
+    with open(output_dir.joinpath("metrics.pkl"), "rb") as f:
         metrics = pickle.load(f)
-    with open("metadata.pkl", "rb") as f:
+    with open(output_dir.joinpath("metadata.pkl"), "rb") as f:
         metadata = pickle.load(f)
 
     fig = plt.figure(figsize=(6.5, 5))
@@ -51,7 +53,9 @@ def main() -> None:
     ax.set_title(
         "Comparison of Least Squares Methods for 4000 x 50 Matrix", pad=20, fontsize=17
     )
-    plt.savefig("benchmark.png", dpi=600, bbox_inches="tight")
+    plt.savefig(
+        output_dir.joinpath("visuals", "benchmark.png"), dpi=600, bbox_inches="tight"
+    )
 
 
 if __name__ == "__main__":
