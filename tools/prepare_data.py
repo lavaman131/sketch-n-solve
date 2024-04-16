@@ -14,7 +14,7 @@ def main() -> None:
     default_kwargs = {"cond": 1e10, "beta": 1e-10}
     dims = [(m, n) for n in [4000] for m in [2**n for n in range(12, 21)]]
     config = [{**default_kwargs, "m": m, "n": n} for m, n in dims]
-    for kwarg in tqdm(config):
+    for kwarg in tqdm([config[0]]):
         lsq = LeastSquaresProblemConfig(**kwarg)
         generate_least_squares_problem(
             lsq.m,

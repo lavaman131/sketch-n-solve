@@ -9,7 +9,7 @@ def _sketch_and_precondition(
     b: np.ndarray,
     S: np.ndarray,
     use_sketch_and_solve_x_0: bool = True,
-    delta: float = 1e-6,
+    delta: float = 1e-12,
     num_iters: Optional[int] = None,
 ) -> np.ndarray:
     """Solves the least squares problem using sketch and preconditioning as described in https://arxiv.org/pdf/2302.07202.pdf.
@@ -25,7 +25,7 @@ def _sketch_and_precondition(
     use_sketch_and_solve_x_0 : bool, optional
         Whether to use x_0 from sketch and solve as the initial guess for the least squares solver rather than the zero vector, by default True.
     delta : float, optional
-        Error tolerance. Controls the number of iterations if num_iters is not specified, by default 1e-6.
+        Error tolerance. Controls the number of iterations if num_iters is not specified, by default 1e-12.
     num_iters : int, optional
         Maximum number of iterations for least-squares QR solver, by default None.
     **kwargs : Any
@@ -67,7 +67,7 @@ def _sketch_and_apply(
     A: np.ndarray,
     b: np.ndarray,
     S: np.ndarray,
-    delta: float = 1e-6,
+    delta: float = 1e-12,
     num_iters: Optional[int] = None,
 ) -> np.ndarray:
     """Solves the least squares problem using sketch-and-apply as described in https://arxiv.org/pdf/2302.07202.pdf.
@@ -81,7 +81,7 @@ def _sketch_and_apply(
     S : np.ndarray
         The sketch matrix.
     delta : float, optional
-        Error tolerance. Controls the number of iterations if num_iters is not specified, by default 1e-6.
+        Error tolerance. Controls the number of iterations if num_iters is not specified, by default 1e-12.
     num_iters : int, optional
         Maximum number of iterations for least-squares QR solver, by default None.
     **kwargs : Any
@@ -121,7 +121,7 @@ def _smoothed_sketch_and_apply(
     A: np.ndarray,
     b: np.ndarray,
     G: np.ndarray,
-    delta: float = 1e-6,
+    delta: float = 1e-12,
     num_iters: Optional[int] = None,
 ) -> np.ndarray:
     """Solves the least squares problem using smoothed sketch-and-apply as described in https://arxiv.org/pdf/2302.07202.pdf.
