@@ -1,5 +1,5 @@
 import time
-from typing import Any, Callable, Sequence, Tuple
+from typing import Any, Callable, Sequence
 
 __all__ = ["timer"]
 

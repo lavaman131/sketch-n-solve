@@ -28,7 +28,7 @@ class LeastSquares(Solver):
         b: np.ndarray,
         use_sketch_and_solve_x_0: bool = True,
         delta: float = 1e-6,
-        num_iters: Optional[int] = None,
+        num_iters: Optional[int] = 100,
         **kwargs: Any,
     ) -> np.ndarray:
         """Solves the least squares problem using sketch and preconditioning as described in https://arxiv.org/pdf/2302.07202.pdf.
@@ -44,7 +44,7 @@ class LeastSquares(Solver):
         delta : float, optional
             Error tolerance. Controls the number of iterations if num_iters is not specified, by default 1e-6.
         num_iters : int, optional
-            Maximum number of iterations for least-squares QR solver, by default None.
+            Maximum number of iterations for least-squares QR solver, by default 100.
         **kwargs : Any
             Additional required arguments depending on the sketch function.
 
@@ -64,7 +64,7 @@ class LeastSquares(Solver):
         A: np.ndarray,
         b: np.ndarray,
         delta: float = 1e-6,
-        num_iters: Optional[int] = None,
+        num_iters: Optional[int] = 100,
         **kwargs: Any,
     ) -> np.ndarray:
         """Solves the least squares problem using sketch-and-apply as described in https://arxiv.org/pdf/2302.07202.pdf.
@@ -78,7 +78,7 @@ class LeastSquares(Solver):
         delta : float
             Error tolerance. Controls the number of iterations if num_iters is not specified.
         num_iters : int, optional
-            Maximum number of iterations for least-squares QR solver, by default None. If specified will overwrite delta parameter for error tolerance.
+            Maximum number of iterations for least-squares QR solver, by default 100. If specified will overwrite delta parameter for error tolerance.
         **kwargs : Any
             Additional required arguments depending on the sketch function.
 

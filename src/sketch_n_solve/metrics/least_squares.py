@@ -46,8 +46,8 @@ def residual_error(A: np.ndarray, y: np.ndarray, x_hat: np.ndarray) -> float:
 def backward_error(
     A: np.ndarray, y: np.ndarray, x: np.ndarray, theta: Optional[float] = None
 ) -> float:
-    r"""Compute the backward error. If the backward error is small, then :math:`\hat{x}` is the true solution to nearly the right least-squares problem.
-
+    r"""Compute the backward error.
+    If the backward error is small, then :math:`\\hat{x}` is the true solution to nearly the right least-squares problem.
     Parameters
     ----------
     A : np.ndarray
@@ -58,7 +58,6 @@ def backward_error(
         The true solution.
     theta : float, optional
         by default np.inf
-
     Returns
     -------
     backward_error : float
@@ -69,17 +68,13 @@ def backward_error(
     norm_r = SLA.norm(r)
 
     if theta:
-        mu = theta**2 * norm_x**2
-        mu = mu / (1 + mu)
+        mu = theta**2 * norm_x**2 / (1 + theta**2 * norm_x**2)
     else:
         mu = 1
 
     phi = np.sqrt(mu) * norm_r / norm_x
-
-    identity = np.eye(A.shape[0])
     outer_product = np.outer(r, r) / norm_r**2
-    matrix = np.hstack((A, phi * (identity - outer_product)))
-
-    backward_error = np.minimum(phi, np.min(SLA.svd(matrix, compute_uv=False)))
+    matrix = np.hstack((A, phi * (np.eye(A.shape[0]) - outer_product)))
+    backward_error = np.minimum(phi, SLA.svd(matrix, compute_uv=False).min())  # type: ignore
 
     return backward_error

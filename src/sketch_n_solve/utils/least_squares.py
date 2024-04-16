@@ -1,8 +1,10 @@
 from dataclasses import dataclass
-from typing import Dict, Optional
+from pathlib import Path
+from typing import Dict, Optional, Union
 import numpy as np
 import scipy.linalg as SLA
 from scipy.stats import ortho_group
+import h5py
 
 
 @dataclass
@@ -10,13 +12,18 @@ class LeastSquaresProblemConfig:
     m: int
     n: int
     cond: float = 1e10
-    beta: float = 1e-12
+    beta: float = 1e-10
 
 
 def generate_least_squares_problem(
-    m: int, n: int, cond: float, beta: float, seed: Optional[int] = 42
-) -> Dict[str, np.ndarray]:
-    """Generate a least squares problem.
+    m: int,
+    n: int,
+    cond: float,
+    beta: float,
+    save_dir: Union[str, Path],
+    seed: Optional[int] = 42,
+) -> None:
+    r"""Generate a least squares problem.
 
     Parameters
     ----------
@@ -28,16 +35,17 @@ def generate_least_squares_problem(
         condition number of matrix A
     beta : float
         noise level
+    save_dir : Union[str, Path]
+        directory to save the problem where `problem` is:
+            problem : Dict[str, np.ndarray]
+                matrix A, vector b, vector x, and noise vector r_x
     seed : int, optional
         random seed, by default 42
-
-    Returns
-    -------
-    problem : Dict[str, np.ndarray]
-        matrix A, vector b, vector x, and noise vector r_x
     """
     assert cond >= 1, "Condition number must be greater than or equal to 1."
     assert beta >= 0, "Noise level must be greater than or equal to 0."
+    save_dir = Path(save_dir) if isinstance(save_dir, str) else save_dir
+    save_dir.mkdir(exist_ok=True, parents=True)
     m, n = max(m, n), min(m, n)
     U = ortho_group.rvs(m, random_state=seed)
     U_1 = U[:, :n]
@@ -54,5 +62,9 @@ def generate_least_squares_problem(
     r_x = beta * u2z / SLA.norm(u2z)
     b = A @ x + r_x
 
-    problem = {"A": A, "b": b, "x": x, "r_x": r_x}
-    return problem
+    problem = {"A": A, "b": b, "x": x, "r_x": r_x, "cond": cond, "beta": beta}
+    cond_scientific_notation = f"{cond:.0e}".replace("+", "")
+    fname = f"{m}x{n}_{cond_scientific_notation}.h5"
+    with h5py.File(save_dir.joinpath(fname), "w") as f:
+        for key, value in problem.items():
+            f.create_dataset(key, data=value)
