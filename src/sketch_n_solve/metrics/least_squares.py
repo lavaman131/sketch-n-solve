@@ -3,7 +3,7 @@ import numpy as np
 import scipy.linalg as SLA
 
 
-def forward_error(x: np.ndarray, x_hat: np.ndarray) -> np.floating:
+def forward_error(x: np.ndarray, x_hat: np.ndarray) -> float:
     r"""Compute the forward error. The forward error quantifies how close the computed solution :math:`\hat{x}` is to the true solution :math:`x`.
 
     Parameters
@@ -18,7 +18,7 @@ def forward_error(x: np.ndarray, x_hat: np.ndarray) -> np.floating:
     float
         The forward error.
     """
-    return SLA.norm(x - x_hat) / SLA.norm(x)
+    return float(SLA.norm(x - x_hat) / SLA.norm(x))
 
 
 def residual_error(A: np.ndarray, y: np.ndarray, x_hat: np.ndarray) -> float:
@@ -80,6 +80,6 @@ def backward_error(
     outer_product = np.outer(r, r) / norm_r**2
     matrix = np.hstack((A, phi * (identity - outer_product)))
 
-    backward_error = np.min(phi, np.min(SLA.svd(matrix, compute_uv=False)))
+    backward_error = np.minimum(phi, np.min(SLA.svd(matrix, compute_uv=False)))
 
     return backward_error

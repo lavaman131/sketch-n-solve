@@ -1,12 +1,21 @@
-from typing import Tuple
+from dataclasses import dataclass
+from typing import Dict, Optional
 import numpy as np
-import numpy.linalg as LA
+import scipy.linalg as SLA
 from scipy.stats import ortho_group
 
 
+@dataclass
+class LeastSquaresProblemConfig:
+    m: int
+    n: int
+    cond: float = 1e10
+    beta: float = 1e-12
+
+
 def generate_least_squares_problem(
-    m: int, n: int, cond: int, beta: float, seed: int = 42
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    m: int, n: int, cond: float, beta: float, seed: Optional[int] = 42
+) -> Dict[str, np.ndarray]:
     """Generate a least squares problem.
 
     Parameters
@@ -15,7 +24,7 @@ def generate_least_squares_problem(
         number of rows of matrix A
     n : int
         number of columns of matrix A
-    cond : int
+    cond : float
         condition number of matrix A
     beta : float
         noise level
@@ -24,8 +33,8 @@ def generate_least_squares_problem(
 
     Returns
     -------
-    A, b, x : Tuple[np.ndarray, np.ndarray, np.ndarray]
-        matrix A, vector b, and vector x
+    problem : Dict[str, np.ndarray]
+        matrix A, vector b, vector x, and noise vector r_x
     """
     assert cond >= 1, "Condition number must be greater than or equal to 1."
     assert beta >= 0, "Noise level must be greater than or equal to 0."
@@ -40,8 +49,10 @@ def generate_least_squares_problem(
     rng = np.random.default_rng(seed)
     w = rng.standard_normal((n, 1))
     z = rng.standard_normal((m - n, 1))
-    x = w / LA.norm(w)
+    x = w / SLA.norm(w)
     u2z = U_2 @ z
-    r_x = beta * u2z / LA.norm(u2z)
+    r_x = beta * u2z / SLA.norm(u2z)
     b = A @ x + r_x
-    return A, b, x
+
+    problem = {"A": A, "b": b, "x": x, "r_x": r_x}
+    return problem
