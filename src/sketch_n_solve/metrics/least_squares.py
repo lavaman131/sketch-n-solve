@@ -38,9 +38,8 @@ def residual_error(A: np.ndarray, y: np.ndarray, x_hat: np.ndarray) -> float:
     """
     y_hat = A @ x_hat
     r = SLA.norm(y)
-    error = SLA.norm(y - y_hat) / r
-    residual_error = np.sqrt(1 + error**2) * r
-    return residual_error
+    residual_error = SLA.norm(y - y_hat) / r
+    return float(residual_error)
 
 
 def backward_error(

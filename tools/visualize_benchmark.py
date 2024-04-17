@@ -2,9 +2,7 @@ from collections import defaultdict
 from pathlib import Path
 import pickle
 import matplotlib.pyplot as plt
-import numpy as np
 import scienceplots
-import random
 
 plt.style.use(["science", "seaborn-v0_8-talk"])
 
@@ -24,7 +22,6 @@ def main() -> None:
     rows = defaultdict(list)
     residual_errors = defaultdict(list)
     forward_errors = defaultdict(list)
-    backward_errors = defaultdict(list)
 
     for method in metadata.keys():
         trials = metadata[method]
@@ -34,8 +31,7 @@ def main() -> None:
             rows[method].append(trial["m"])
             residual_errors[method].append(trial["residual_error"])
             forward_errors[method].append(trial["forward_error"])
-            backward_errors[method].append(trial["backward_error"])
-
+    print(rows["lstsq"])
     ax.plot(
         rows["lstsq"],
         times["lstsq"],
@@ -70,31 +66,20 @@ def main() -> None:
     ax = fig.add_subplot(111)
 
     ax.plot(
-        rows["lstsq"],
-        residual_errors["lstsq"],
-        marker="o",
-        markersize=7.5,
+        residual_errors["lstsq"][-1],
         label="QR",
     )
     ax.plot(
-        rows["sketch_and_precondition"],
-        residual_errors["sketch_and_precondition"],
-        marker="o",
-        markersize=7.5,
+        residual_errors["sketch_and_precondition"][-1],
         label="SAP-SAS",
     )
     ax.plot(
-        rows["sketch_and_apply"],
-        np.array(residual_errors["sketch_and_apply"]) + 0.1,
-        marker="o",
-        markersize=7.5,
+        residual_errors["sketch_and_apply"][-1],
         label="SAA-SAS",
     )
     ax.legend(loc="upper left")
-    ax.set_xscale("log")
-    ax.set_ylim(-0.5, 10)
-    ax.set_xlabel(r"$m$")
-    ax.set_ylabel(r"Residual Error $\frac{\|Ax - b\|_2}{\|b\|_2}$")
+    ax.set_xlabel("Iterations")
+    ax.set_ylabel(r"Relative Residual Error $\frac{\|Ax - b\|_2}{\|b\|_2}$")
     ax.set_title(r"$n=10^3$")
 
     plt.savefig(
@@ -107,67 +92,20 @@ def main() -> None:
     ax = fig.add_subplot(111)
 
     ax.plot(
-        rows["lstsq"],
-        forward_errors["lstsq"],
-        marker="o",
-        markersize=7.5,
+        forward_errors["lstsq"][-1],
         label="QR",
     )
     ax.plot(
-        rows["sketch_and_precondition"],
-        forward_errors["sketch_and_precondition"],
-        marker="o",
-        markersize=7.5,
+        forward_errors["sketch_and_precondition"][-1],
         label="SAP-SAS",
     )
     ax.plot(
-        rows["sketch_and_apply"],
-        np.array(forward_errors["sketch_and_apply"]) + 0.1,
-        marker="o",
-        markersize=7.5,
+        forward_errors["sketch_and_apply"][-1],
         label="SAA-SAS",
     )
     ax.legend(loc="upper left")
-    ax.set_xscale("log")
-    ax.set_ylim(-0.5, 10)
-    ax.set_xlabel(r"$m$")
-    ax.set_ylabel(r"Forward Error $\frac{\|x - \hat{x}\|_2}{\|x\|_2}$")
-    ax.set_title(r"$n=10^3$")
-    plt.savefig(
-        visuals_dir.joinpath("benchmark_forward_error.png"),
-        dpi=600,
-        bbox_inches="tight",
-    )
-
-    fig = plt.figure(figsize=(6.5, 5))
-    ax = fig.add_subplot(111)
-
-    ax.plot(
-        rows["lstsq"],
-        backward_errors["lstsq"],
-        marker="o",
-        markersize=7.5,
-        label="QR",
-    )
-    ax.plot(
-        rows["sketch_and_precondition"],
-        backward_errors["sketch_and_precondition"],
-        marker="o",
-        markersize=7.5,
-        label="SAP-SAS",
-    )
-    ax.plot(
-        rows["sketch_and_apply"],
-        np.array(backward_errors["sketch_and_apply"]) + 0.1,
-        marker="o",
-        markersize=7.5,
-        label="SAA-SAS",
-    )
-    ax.legend(loc="upper left")
-    ax.set_xscale("log")
-    ax.set_ylim(-0.5, 10)
-    ax.set_xlabel(r"$m$")
-    ax.set_ylabel(r"Backward Error $\frac{\|Ax - A\hat{x}\|_2}{\|A\|_2\|\hat{x}\|_2}$")
+    ax.set_xlabel("Iterations")
+    ax.set_ylabel(r"Relative Forward Error $\frac{\|x - \hat{x}\|_2}{\|x\|_2}$")
     ax.set_title(r"$n=10^3$")
     plt.savefig(
         visuals_dir.joinpath("benchmark_forward_error.png"),

@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 import numpy as np
 from sketch_n_solve.solve.least_squares.algorithms import (
     _sketch_and_apply,
@@ -27,6 +27,7 @@ class LeastSquares(Solver):
         use_sketch_and_solve_x_0: bool = True,
         tolerance: float = 1e-6,
         num_iters: Optional[int] = 100,
+        callback: Optional[Callable[[np.ndarray], None]] = None,
         **kwargs: Any,
     ) -> np.ndarray:
         """Solves the least squares problem using sketch and preconditioning as described in https://arxiv.org/pdf/2302.07202.pdf.
@@ -43,6 +44,8 @@ class LeastSquares(Solver):
             Error tolerance. Controls the number of iterations if num_iters is not specified, by default 1e-6.
         num_iters : int, optional
             Maximum number of iterations for least-squares QR solver, by default 100.
+        callback : Optional[Callable[[np.ndarray], None]], optional
+            Callback function to be called after each iteration of LSQR, by default None.
         **kwargs : Any
             Additional required arguments depending on the sketch function.
 
@@ -53,7 +56,7 @@ class LeastSquares(Solver):
         """
         A, S = self.sketch(A, **kwargs)
         x = _sketch_and_precondition(
-            A, b, S, use_sketch_and_solve_x_0, tolerance, num_iters
+            A, b, S, use_sketch_and_solve_x_0, tolerance, num_iters, callback
         )
         return x
 
@@ -63,6 +66,7 @@ class LeastSquares(Solver):
         b: np.ndarray,
         tolerance: float = 1e-6,
         num_iters: Optional[int] = 100,
+        callback: Optional[Callable[[np.ndarray], None]] = None,
         **kwargs: Any,
     ) -> np.ndarray:
         """Solves the least squares problem using sketch-and-apply as described in https://arxiv.org/pdf/2302.07202.pdf.
@@ -77,6 +81,8 @@ class LeastSquares(Solver):
             Error tolerance. Controls the number of iterations if num_iters is not specified.
         num_iters : int, optional
             Maximum number of iterations for least-squares QR solver, by default 100. If specified will overwrite tolerance parameter for error tolerance.
+        callback : Optional[Callable[[np.ndarray], None]], optional
+            Callback function to be called after each iteration of LSQR, by default None.
         **kwargs : Any
             Additional required arguments depending on the sketch function.
 
@@ -86,8 +92,10 @@ class LeastSquares(Solver):
             The solution to the least squares problem.
         """
         A, S = self.sketch(A, **kwargs)
-        x = _sketch_and_apply(A, b, S, tolerance, num_iters)
+        x = _sketch_and_apply(A, b, S, tolerance, num_iters, callback)
 
         if SLA.norm(A @ x - b) <= tolerance:
             return x
-        return _smoothed_sketch_and_apply(A, b, S, tolerance, num_iters)
+        return _smoothed_sketch_and_apply(
+            A, b, S, tolerance, num_iters, self.seed, callback
+        )

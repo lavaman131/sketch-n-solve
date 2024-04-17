@@ -1,5 +1,7 @@
 from pathlib import Path
-from sketch_n_solve.metrics import calculate_least_squares_metrics
+from sketch_n_solve.metrics import (
+    LeastSquaresMetricCallback,
+)
 from sketch_n_solve.solve.least_squares import LeastSquares
 import pickle
 
@@ -13,7 +15,8 @@ def main() -> None:
     problem_paths = list(precomputed_problems_dir.glob("*.h5"))
     sketch_fn = "sparse_sign"
     lsq = LeastSquares(sketch_fn, seed)
-    metadata = calculate_least_squares_metrics(problem_paths, lsq)
+    metric_callback = LeastSquaresMetricCallback()
+    metadata = metric_callback(problem_paths, lsq)
     with open(benchmark_dir.joinpath("metadata.pkl"), "wb") as f:
         pickle.dump(metadata, f)
 
