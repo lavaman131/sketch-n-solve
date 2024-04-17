@@ -1,11 +1,11 @@
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 import numpy as np
 import scipy.linalg as SLA
 import math
 
 
 def uniform_dense(
-    A: np.ndarray, k: int, seed: Optional[int] = 42
+    A: np.ndarray, k: int, seed: Optional[int] = 42, **kwargs: Any
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Implements uniform sketch as described in https://arxiv.org/pdf/2302.11474.pdf.
 
@@ -39,7 +39,7 @@ def uniform_dense(
 
 
 def normal(
-    A: np.ndarray, k: int, seed: Optional[int] = 42
+    A: np.ndarray, k: int, seed: Optional[int] = 42, **kwargs: Any
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Implements normal sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
 
@@ -73,7 +73,7 @@ def normal(
 
 
 def hadamard(
-    A: np.ndarray, k: int, seed: Optional[int] = 42
+    A: np.ndarray, k: int, seed: Optional[int] = 42, **kwargs: Any
 ) -> Tuple[np.ndarray, np.ndarray]:
     r"""Implements Hadamard sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
 

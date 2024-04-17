@@ -12,8 +12,6 @@ def main() -> None:
     visuals_dir = output_dir.joinpath("visuals")
     visuals_dir.mkdir(exist_ok=True)
     benchmark_dir = output_dir.joinpath("benchmark")
-    with open(benchmark_dir.joinpath("metrics.pkl"), "rb") as f:
-        metrics = pickle.load(f)
     with open(benchmark_dir.joinpath("metadata.pkl"), "rb") as f:
         metadata = pickle.load(f)
 
@@ -25,41 +23,37 @@ def main() -> None:
 
     for method in metadata.keys():
         trials = metadata[method]
-        sorted_trials = sorted(trials, key=lambda x: x["cond"])
+        sorted_trials = sorted(trials, key=lambda x: x["m"])
         for trial in sorted_trials:
             times[method].append(trial["time_elapsed"])
-            conds[method].append(trial["cond"])
+            conds[method].append(trial["m"])
 
-    print()
     ax.plot(
         conds["lstsq"],
         times["lstsq"],
         marker="o",
         markersize=7.5,
-        label="Least Squares (Deterministic)",
+        label="QR",
     )
     ax.plot(
         conds["sketch_and_precondition"],
         times["sketch_and_precondition"],
         marker="o",
         markersize=7.5,
-        label="Sketch and Precondition",
+        label="SAP-SAS",
     )
     ax.plot(
         conds["sketch_and_apply"],
         times["sketch_and_apply"],
         marker="o",
         markersize=7.5,
-        label="Sketch and Apply",
+        label="SAA-SAS",
     )
-    ax.legend(loc="upper right")
-    ax.set_ylim(-0.1, 0.5)
+    ax.legend(loc="upper left")
     ax.set_xscale("log")
-    ax.set_xlabel(r"Condition Number ($\kappa$)")
+    ax.set_xlabel(r"$m$")
     ax.set_ylabel("Time (sec)")
-    ax.set_title(
-        "Comparison of Least Squares Methods for 4000 x 50 Matrix", pad=20, fontsize=17
-    )
+    ax.set_title(r"$n=10^3$")
     plt.savefig(visuals_dir.joinpath("benchmark.png"), dpi=600, bbox_inches="tight")
 
 

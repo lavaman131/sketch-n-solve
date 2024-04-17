@@ -19,13 +19,10 @@ from tqdm import tqdm
 import h5py
 
 
-class LeastSquaresMetrics(TypedDict):
+class LeastSquaresMetaData(TypedDict):
     forward_error: float
     residual_error: float
     backward_error: float
-
-
-class MetaData(TypedDict):
     norm_r: float
     time_elapsed: float
     cond: float
@@ -34,19 +31,18 @@ class MetaData(TypedDict):
 
 def calculate_least_squares_error_metrics(
     A: np.ndarray, b: np.ndarray, x: np.ndarray, x_hat: np.ndarray
-) -> LeastSquaresMetrics:
+) -> Dict[str, float]:
     metrics = dict()
     metrics["forward_error"] = forward_error(x, x_hat)
     metrics["residual_error"] = residual_error(A, b, x_hat)
     # metrics["backward_error"] = backward_error(A, b, x_hat)
-    return metrics  # type: ignore
+    return metrics
 
 
 def calculate_least_squares_metrics(
     problem_paths: List[Path],
     lsq: LeastSquares,
-) -> Tuple[Dict[str, List[LeastSquaresMetrics]], Dict[str, List[MetaData]]]:
-    metrics = defaultdict(list)
+) -> List[LeastSquaresMetaData]:
     metadata = defaultdict(list)
     for problem_path in tqdm(problem_paths):
         with h5py.File(problem_path, "r") as f:
@@ -59,34 +55,44 @@ def calculate_least_squares_metrics(
                 problem["cond"],
                 problem["beta"],
             )
-            norm_r = SLA.norm(r_x)
-            all_metadata = {"norm_r": norm_r, "cond": cond, "beta": beta}
+            default_metadata = {
+                "norm_r": SLA.norm(r_x),
+                "cond": cond,
+                "beta": beta,
+                "m": A.shape[0],
+                "n": A.shape[1],
+            }
             lstsq_output, time_elapsed_lstq = timer(SLA.lstsq)(A, b)
             x_hat_lstsq = lstsq_output[0]
             metadata["lstsq"].append(
-                {"time_elapsed": time_elapsed_lstq, **all_metadata}
+                {
+                    "time_elapsed": time_elapsed_lstq,
+                    **default_metadata,
+                    **calculate_least_squares_error_metrics(A, b, x, x_hat_lstsq),
+                }
             )
             x_hat_sketch_and_precondition, time_elapsed_sketch_and_precondition = timer(
                 lsq.sketch_and_precondition
             )(A, b)
             metadata["sketch_and_precondition"].append(
-                {"time_elapsed": time_elapsed_sketch_and_precondition, **all_metadata}
+                {
+                    "time_elapsed": time_elapsed_sketch_and_precondition,
+                    **default_metadata,
+                    **calculate_least_squares_error_metrics(
+                        A, b, x, x_hat_sketch_and_precondition
+                    ),
+                }
             )
             x_hat_sketch_and_apply, time_elapsed_sketch_and_apply = timer(
                 lsq.sketch_and_apply
             )(A, b, sparsity_parameter=None)
             metadata["sketch_and_apply"].append(
-                {"time_elapsed": time_elapsed_sketch_and_apply, **all_metadata}
+                {
+                    "time_elapsed": time_elapsed_sketch_and_apply,
+                    **default_metadata,
+                    **calculate_least_squares_error_metrics(
+                        A, b, x, x_hat_sketch_and_apply
+                    ),
+                }
             )
-            metrics["lstsq"].append(
-                calculate_least_squares_error_metrics(A, b, x, x_hat_lstsq)
-            )
-            metrics["sketch_and_precondition"].append(
-                calculate_least_squares_error_metrics(
-                    A, b, x, x_hat_sketch_and_precondition
-                )
-            )
-            metrics["sketch_and_apply"].append(
-                calculate_least_squares_error_metrics(A, b, x, x_hat_sketch_and_apply)
-            )
-    return metrics, metadata
+    return metadata  # type: ignore

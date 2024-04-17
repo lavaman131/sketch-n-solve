@@ -13,9 +13,7 @@ def main() -> None:
     problem_paths = list(precomputed_problems_dir.glob("*.h5"))
     sketch_fn = "sparse_sign"
     lsq = LeastSquares(sketch_fn, seed)
-    metrics, metadata = calculate_least_squares_metrics(problem_paths, lsq)
-    with open(benchmark_dir.joinpath("metrics.pkl"), "wb") as f:
-        pickle.dump(metrics, f)
+    metadata = calculate_least_squares_metrics(problem_paths, lsq)
     with open(benchmark_dir.joinpath("metadata.pkl"), "wb") as f:
         pickle.dump(metadata, f)
 

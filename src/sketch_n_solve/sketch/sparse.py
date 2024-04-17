@@ -1,10 +1,10 @@
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 import numpy as np
 import scipy.sparse
 
 
 def uniform_sparse(
-    A: np.ndarray, k: int, seed: Optional[int] = 42
+    A: np.ndarray, k: int, seed: Optional[int] = 42, **kwargs: Any
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Implements uniform sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
 
@@ -41,7 +41,7 @@ def uniform_sparse(
 
 
 def clarkson_woodruff(
-    A: np.ndarray, k: int, seed: Optional[int] = 42
+    A: np.ndarray, k: int, seed: Optional[int] = 42, **kwargs: Any
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Implements Clarkson-Woodruff sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
 
@@ -82,6 +82,7 @@ def sparse_sign(
     A: np.ndarray,
     sparsity_parameter: Optional[int] = None,
     seed: Optional[int] = 42,
+    **kwargs: Any,
 ) -> Tuple[np.ndarray, np.ndarray]:
     r"""Implements sparse sign sketch as described in https://arxiv.org/pdf/2002.01387.pdf.
 
