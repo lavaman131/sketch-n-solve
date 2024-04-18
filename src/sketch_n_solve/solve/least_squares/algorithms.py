@@ -68,6 +68,7 @@ def _sketch_and_precondition(
     end_time = time.perf_counter()
 
     time_elapsed = end_time - start_time
+    x_hats = []
     if log_x_hat:
         x_hats = [triangular_solve(R, y_hat, lower=False)[0] for y_hat in y_hats]
     return x, time_elapsed, x_hats
@@ -131,6 +132,7 @@ def _sketch_and_apply(
     end_time = time.perf_counter()
 
     time_elapsed = end_time - start_time
+    x_hats = []
     if log_x_hat:
         x_hats = [triangular_solve(R, z_hat, lower=False)[0] for z_hat in z_hats]
 

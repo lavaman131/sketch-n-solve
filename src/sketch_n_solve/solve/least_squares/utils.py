@@ -66,4 +66,4 @@ def lsqr(
         if np.abs(phibar * alpha * c) <= tol * resnorm:
             break
 
-    return x.ravel(), x_hats
+    return x, x_hats
