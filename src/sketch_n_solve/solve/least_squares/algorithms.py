@@ -1,8 +1,9 @@
-from typing import Any, Callable, Optional
+import time
+from typing import Any, Callable, List, Optional, Tuple
 import numpy as np
+import numpy.linalg as LA
 import scipy.linalg as SLA
 from scipy.linalg.lapack import dtrtrs as triangular_solve
-import scipy.sparse
 from sketch_n_solve.solve.least_squares.utils import lsqr
 
 
@@ -12,10 +13,10 @@ def _sketch_and_precondition(
     S: np.ndarray,
     use_sketch_and_solve_x_0: bool = True,
     tolerance: float = 1e-6,
-    num_iters: Optional[int] = None,
-    callback: Optional[Callable[[np.ndarray], None]] = None,
+    iter_lim: Optional[int] = None,
+    log_x_hat: bool = False,
     **kwargs: Any,
-) -> np.ndarray:
+) -> Tuple[np.ndarray, float, List[np.ndarray]]:
     """Solves the least squares problem using sketch and preconditioning as described in https://arxiv.org/pdf/2302.07202.pdf.
 
     Parameters
@@ -29,11 +30,11 @@ def _sketch_and_precondition(
     use_sketch_and_solve_x_0 : bool, optional
         Whether to use x_0 from sketch and solve as the initial guess for the least squares solver rather than the zero vector, by default True.
     tolerance : float, optional
-        Error tolerance. Controls the number of iterations if num_iters is not specified, by default 1e-6.
-    num_iters : int, optional
+        Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-6.
+    iter_lim : int, optional
         Maximum number of iterations for least-squares QR solver, by default None.
-    callback : Optional[Callable[[np.ndarray], None]], optional
-        Callback function to be called after each iteration of LSQR, by default None.
+    log_x_hat : bool, optional
+        Whether to log the intermediate solutions, by default False.
     **kwargs : Any
         Additional required arguments depending on the sketch function.
 
@@ -47,31 +48,29 @@ def _sketch_and_precondition(
         A.shape[0] == b.shape[0]
     ), "The number of rows of the input matrix and the target vector should be the same."
     assert (
-        num_iters is None or num_iters > 0
+        iter_lim is None or iter_lim > 0
     ), "Number of iterations should be greater than 0."
+    start_time = time.perf_counter()
     B = S @ A
     Q, R = SLA.qr(B, mode="economic", pivoting=False)  # type: ignore
 
     if use_sketch_and_solve_x_0:
-        y_0 = triangular_solve(R, Q.T @ S @ b, lower=False)[0]  # type: ignore
-        x_0 = y_0.squeeze()
+        x_0 = triangular_solve(R, Q.T @ S @ b, lower=False)[0]  # type: ignore
     else:
         x_0 = None
 
     A_precond = A @ triangular_solve(R, np.eye(R.shape[0]), lower=False)[0]
 
-    y = lsqr(
-        A_precond,
-        b,
-        x0=x_0,
-        iter_lim=num_iters,
-        atol=tolerance,
-        btol=tolerance,
-        callback=callback,
-    )[0]
-
+    y, y_hats = lsqr(
+        A=A_precond, b=b, x0=x_0, tol=tolerance, iter_lim=iter_lim, log_x_hat=log_x_hat
+    )
     x = triangular_solve(R, y, lower=False)[0]
-    return x.reshape(-1, 1)
+    end_time = time.perf_counter()
+
+    time_elapsed = end_time - start_time
+    if log_x_hat:
+        x_hats = [triangular_solve(R, y_hat, lower=False)[0] for y_hat in y_hats]
+    return x, time_elapsed, x_hats
 
 
 def _sketch_and_apply(
@@ -79,10 +78,10 @@ def _sketch_and_apply(
     b: np.ndarray,
     S: np.ndarray,
     tolerance: float = 1e-6,
-    num_iters: Optional[int] = None,
-    callback: Optional[Callable[[np.ndarray], None]] = None,
+    iter_lim: Optional[int] = None,
+    log_x_hat: bool = False,
     **kwargs: Any,
-) -> np.ndarray:
+) -> Tuple[np.ndarray, float, List[np.ndarray]]:
     """Solves the least squares problem using sketch-and-apply as described in https://arxiv.org/pdf/2302.07202.pdf.
 
     Parameters
@@ -94,11 +93,11 @@ def _sketch_and_apply(
     S : np.ndarray
         The sketch matrix.
     tolerance : float, optional
-        Error tolerance. Controls the number of iterations if num_iters is not specified, by default 1e-6.
-    num_iters : int, optional
+        Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-6.
+    iter_lim : int, optional
         Maximum number of iterations for least-squares QR solver, by default None.
-    callback : Optional[Callable[[np.ndarray], None]], optional
-        Callback function to be called after each iteration of LSQR, by default None.
+    log_x_hat : bool, optional
+        Whether to log the intermediate solutions, by default False.
     **kwargs : Any
         Additional required arguments depending on the sketch function.
 
@@ -113,24 +112,29 @@ def _sketch_and_apply(
     ), "The number of rows of the input matrix and the target vector should be the same."
     assert tolerance > 0, "Error tolerance should be greater than 0."
     assert (
-        num_iters is None or num_iters > 0
+        iter_lim is None or iter_lim > 0
     ), "Number of iterations should be greater than 0."
 
+    start_time = time.perf_counter()
     B = S @ A
     Q, R = SLA.qr(B, mode="economic", pivoting=False)  # type: ignore
     z_0 = Q.T @ S @ b  # type: ignore
-    z = lsqr(
-        Q,  # type: ignore
-        S @ b,
-        x0=z_0.squeeze(),
-        iter_lim=num_iters,
-        atol=tolerance,
-        btol=tolerance,
-        callback=callback,
-    )[0]
+    z, z_hats = lsqr(
+        A=Q,  # type: ignore
+        b=S @ b,
+        x0=z_0,
+        tol=tolerance,
+        iter_lim=iter_lim,
+        log_x_hat=log_x_hat,
+    )
     x = triangular_solve(R, z, lower=False)[0]
+    end_time = time.perf_counter()
 
-    return x.reshape(-1, 1)
+    time_elapsed = end_time - start_time
+    if log_x_hat:
+        x_hats = [triangular_solve(R, z_hat, lower=False)[0] for z_hat in z_hats]
+
+    return x, time_elapsed, x_hats
 
 
 def _smoothed_sketch_and_apply(
@@ -138,11 +142,11 @@ def _smoothed_sketch_and_apply(
     b: np.ndarray,
     S: np.ndarray,
     tolerance: float = 1e-6,
-    num_iters: Optional[int] = None,
+    iter_lim: Optional[int] = None,
     seed: Optional[int] = 42,
-    callback: Optional[Callable[[np.ndarray], None]] = None,
+    log_x_hat: bool = False,
     **kwargs: Any,
-) -> np.ndarray:
+) -> Tuple[np.ndarray, float, List[np.ndarray]]:
     """Solves the least squares problem using smoothed sketch-and-apply as described in https://arxiv.org/pdf/2302.07202.pdf.
 
     Parameters
@@ -154,13 +158,13 @@ def _smoothed_sketch_and_apply(
     S : np.ndarray
         The sketch matrix.
     tolerance : float
-        Error tolerance. Controls the number of iterations if num_iters is not specified.
-    num_iters : int, optional
+        Error tolerance. Controls the number of iterations if iter_lim is not specified.
+    iter_lim : int, optional
         Maximum number of iterations for least-squares QR solver, by default None. If specified will overwrite tolerance parameter for error tolerance.
     seed : int, optional
         Random seed for generation of G, by default 42.
-    callback : Optional[Callable[[np.ndarray], None]], optional
-        Callback function to be called after each iteration of LSQR, by default None.
+    log_x_hat : bool, optional
+        Whether to log the intermediate solutions, by default False.
     **kwargs : Any
         Additional required arguments depending on the sketch function.
 
@@ -175,12 +179,18 @@ def _smoothed_sketch_and_apply(
     ), "The number of rows of the input matrix and the target vector should be the same."
     assert tolerance > 0, "Error tolerance should be greater than 0."
     assert (
-        num_iters is None or num_iters > 0
+        iter_lim is None or iter_lim > 0
     ), "Number of iterations should be greater than 0."
     rng = np.random.default_rng(seed)
     m, n = A.shape
-    sigma = 10 * SLA.norm(A) * np.finfo(float).eps
+    start_time = time.perf_counter()
+    sigma = 10 * LA.norm(A) * np.finfo(float).eps
     G = rng.standard_normal(size=(m, n))
     A_tilde = A + sigma * G / np.sqrt(m)
-    x = _sketch_and_apply(A_tilde, b, S, tolerance, num_iters, callback)
-    return x.reshape(-1, 1)
+    x, _, x_hats = _sketch_and_apply(
+        A_tilde, b, S, tolerance, iter_lim, log_x_hat=log_x_hat
+    )
+    end_time = time.perf_counter()
+    time_elapsed = end_time - start_time
+
+    return x, time_elapsed, x_hats

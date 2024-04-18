@@ -1,5 +1,6 @@
 from collections import defaultdict
 from pathlib import Path
+import time
 from typing import Dict, List
 import numpy as np
 from sketch_n_solve.metrics.least_squares import (
@@ -10,7 +11,6 @@ from sketch_n_solve.metrics.least_squares import (
 from typing import TypedDict
 import scipy.linalg as SLA
 from sketch_n_solve.solve.least_squares import LeastSquares
-from sketch_n_solve.utils import timer
 from tqdm import tqdm
 import h5py
 from sketch_n_solve.solve.least_squares.utils import lsqr
@@ -27,11 +27,8 @@ class LeastSquaresMetaData(TypedDict):
 
 
 class LeastSquaresMetricCallback:
-    def __init__(self) -> None:
-        self.x_hat = []
-
     @staticmethod
-    def calculate_least_squares_error_metrics(
+    def calculate_least_squares_error_metrics_batch(
         A: np.ndarray,
         b: np.ndarray,
         x: np.ndarray,
@@ -46,12 +43,6 @@ class LeastSquaresMetricCallback:
             if calculate_backward_error:
                 metrics["backward_error"].append(backward_error(A, b, x_hat))
         return metrics
-
-    def x_hat_callback(self, x_hat: np.ndarray):
-        self.x_hat.append(x_hat)
-
-    def cleanup_callback(self):
-        self.x_hat = []
 
     def __call__(
         self,
@@ -77,43 +68,42 @@ class LeastSquaresMetricCallback:
                     "m": A.shape[0],
                     "n": A.shape[1],
                 }
-                _, time_elapsed_lstq = timer(lsqr)(A, b, callback=self.x_hat_callback)
+                start_time = time.perf_counter()
+                x, x_hats = lsqr(A, b, log_x_hat=True)
+                end_time = time.perf_counter()
+                time_elapsed = end_time - start_time
                 metadata["lstsq"].append(
                     {
-                        "time_elapsed": time_elapsed_lstq,
+                        "time_elapsed": time_elapsed,
                         **default_metadata,
-                        **LeastSquaresMetricCallback.calculate_least_squares_error_metrics(
-                            A, b, x, self.x_hat
+                        **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
+                            A, b, x, x_hats
                         ),
                     }
                 )
-                self.cleanup_callback()
-                _, time_elapsed_sketch_and_precondition = timer(
-                    lsq.sketch_and_precondition
-                )(A, b, callback=self.x_hat_callback)
+                x, time_elapsed, x_hats = lsq.sketch_and_precondition(
+                    A, b, log_x_hat=True
+                )
                 metadata["sketch_and_precondition"].append(
                     {
-                        "time_elapsed": time_elapsed_sketch_and_precondition,
+                        "time_elapsed": time_elapsed,
                         **default_metadata,
-                        **LeastSquaresMetricCallback.calculate_least_squares_error_metrics(
-                            A, b, x, self.x_hat
+                        **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
+                            A, b, x, x_hats
                         ),
                     }
                 )
-                self.cleanup_callback()
-                _, time_elapsed_sketch_and_apply = timer(lsq.sketch_and_apply)(
-                    A, b, sparsity_parameter=None, callback=self.x_hat_callback
+                x, time_elapsed, x_hats = lsq.sketch_and_apply(
+                    A, b, sparsity_parameter=None, log_x_hat=True
                 )
 
                 metadata["sketch_and_apply"].append(
                     {
-                        "time_elapsed": time_elapsed_sketch_and_apply,
+                        "time_elapsed": time_elapsed,
                         **default_metadata,
-                        **LeastSquaresMetricCallback.calculate_least_squares_error_metrics(
-                            A, b, x, self.x_hat
+                        **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
+                            A, b, x, x_hats
                         ),
                     }
                 )
-
-                self.cleanup_callback()
         return metadata  # type: ignore

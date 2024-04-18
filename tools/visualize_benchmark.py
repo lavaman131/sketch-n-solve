@@ -31,7 +31,6 @@ def main() -> None:
             rows[method].append(trial["m"])
             residual_errors[method].append(trial["residual_error"])
             forward_errors[method].append(trial["forward_error"])
-    print(rows["lstsq"])
     ax.plot(
         rows["lstsq"],
         times["lstsq"],
@@ -79,7 +78,7 @@ def main() -> None:
     )
     ax.legend(loc="upper left")
     ax.set_xlabel("Iterations")
-    ax.set_ylabel(r"Relative Residual Error $\frac{\|Ax - b\|_2}{\|b\|_2}$")
+    ax.set_ylabel(r"Residual Error $\frac{\|Ax - b\|_2}{\|b\|_2}$")
     ax.set_title(r"$n=10^3$")
 
     plt.savefig(
@@ -105,7 +104,7 @@ def main() -> None:
     )
     ax.legend(loc="upper left")
     ax.set_xlabel("Iterations")
-    ax.set_ylabel(r"Relative Forward Error $\frac{\|x - \hat{x}\|_2}{\|x\|_2}$")
+    ax.set_ylabel(r"Forward Error $\frac{\|x - \hat{x}\|_2}{\|x\|_2}$")
     ax.set_title(r"$n=10^3$")
     plt.savefig(
         visuals_dir.joinpath("benchmark_forward_error.png"),

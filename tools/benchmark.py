@@ -1,4 +1,6 @@
 from pathlib import Path
+
+import numpy as np
 from sketch_n_solve.metrics import (
     LeastSquaresMetricCallback,
 )
@@ -8,6 +10,8 @@ import pickle
 
 def main() -> None:
     seed = 42
+    # warmup with array
+    np.empty(shape=(10000, 10000))
     output_dir = Path("outputs")
     benchmark_dir = output_dir.joinpath("benchmark")
     benchmark_dir.mkdir(exist_ok=True)

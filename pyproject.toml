@@ -16,6 +16,7 @@ seaborn = "^0.13.2"
 tqdm = "^4.66.2"
 scienceplots = "^2.1.1"
 h5py = "^3.11.0"
+numba = "^0.59.1"
 
 [build-system]
 requires = ["poetry-core"]

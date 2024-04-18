@@ -12,7 +12,7 @@ def main() -> None:
     output_dir = Path("outputs")
     output_dir.mkdir(exist_ok=True)
     default_kwargs = {"cond": 1e10, "beta": 1e-10}
-    dims = [(m, n) for n in [1000] for m in range(4000, 21000, 2000)]
+    dims = [(m, n) for n in [100] for m in range(4000, 21000, 2000)]
     config = [{**default_kwargs, "m": m, "n": n} for m, n in dims]
     for kwarg in tqdm(config):
         lsq = LeastSquaresProblemConfig(**kwarg)
