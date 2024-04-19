@@ -1,5 +1,5 @@
 import time
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 import numpy as np
 import numpy.linalg as LA
 import scipy.linalg as SLA
