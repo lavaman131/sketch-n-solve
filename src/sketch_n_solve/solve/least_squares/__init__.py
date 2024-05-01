@@ -26,7 +26,7 @@ class LeastSquares(Solver):
         b: np.ndarray,
         use_sketch_and_solve_x_0: bool = True,
         tolerance: float = 1e-6,
-        iter_lim: Optional[int] = 100,
+        iter_lim: Optional[int] = 50,
         log_x_hat: bool = False,
         **kwargs: Any,
     ) -> Tuple[np.ndarray, float, List[np.ndarray]]:
@@ -43,7 +43,7 @@ class LeastSquares(Solver):
         tolerance : float, optional
             Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-6.
         iter_lim : int, optional
-            Maximum number of iterations for least-squares QR solver, by default 100.
+            Maximum number of iterations for least-squares QR solver, by default 50.
         callback : Optional[Callable[[np.ndarray], None]], optional
             Callback function to be called after each iteration of LSQR, by default None.
         **kwargs : Any
@@ -53,6 +53,10 @@ class LeastSquares(Solver):
         -------
         x : (d, 1) np.ndarray
             The solution to the least squares problem.
+        time_elapsed : float
+            Time taken to solve the least squares problem.
+        x_hats : List[np.ndarray]
+            List of intermediate solutions if log_x_hat is True.
         """
         A, S = self.sketch(A, **kwargs)
         x, time_elapsed, x_hats = _sketch_and_precondition(
@@ -65,7 +69,7 @@ class LeastSquares(Solver):
         A: np.ndarray,
         b: np.ndarray,
         tolerance: float = 1e-6,
-        iter_lim: Optional[int] = 100,
+        iter_lim: Optional[int] = 50,
         log_x_hat: bool = False,
         **kwargs: Any,
     ) -> Tuple[np.ndarray, float, List[np.ndarray]]:
@@ -80,7 +84,7 @@ class LeastSquares(Solver):
         tolerance : float
             Error tolerance. Controls the number of iterations if iter_lim is not specified.
         iter_lim : int, optional
-            Maximum number of iterations for least-squares QR solver, by default 100. If specified will overwrite tolerance parameter for error tolerance.
+            Maximum number of iterations for least-squares QR solver, by default 50. If specified will overwrite tolerance parameter for error tolerance.
         callback : Optional[Callable[[np.ndarray], None]], optional
             Callback function to be called after each iteration of LSQR, by default None.
         **kwargs : Any
@@ -90,6 +94,10 @@ class LeastSquares(Solver):
         -------
         x : (d, 1) np.ndarray
             The solution to the least squares problem.
+        time_elapsed : float
+            Time taken to solve the least squares problem.
+        x_hats : List[np.ndarray]
+            List of intermediate solutions if log_x_hat is True.
         """
         A, S = self.sketch(A, **kwargs)
         x, time_elapsed_apply, x_hats_apply = _sketch_and_apply(

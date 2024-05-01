@@ -42,6 +42,10 @@ def _sketch_and_precondition(
     -------
     x : (d, 1) np.ndarray
         The solution to the least squares problem.
+    time_elapsed : float
+        Time taken to solve the least squares problem.
+    x_hats : List[np.ndarray]
+        List of intermediate solutions if log_x_hat is True.
     """
     assert b.ndim == 2, "The target vector should be a column vector."
     assert (
@@ -52,10 +56,11 @@ def _sketch_and_precondition(
     ), "Number of iterations should be greater than 0."
     start_time = time.perf_counter()
     B = S @ A
+    c = S @ b
     Q, R = SLA.qr(B, mode="economic", pivoting=False)  # type: ignore
 
     if use_sketch_and_solve_x_0:
-        x_0 = triangular_solve(R, Q.T @ S @ b, lower=False)[0]  # type: ignore
+        x_0 = triangular_solve(R, Q.T @ c, lower=False)[0]  # type: ignore
     else:
         x_0 = None
 
@@ -106,6 +111,10 @@ def _sketch_and_apply(
     -------
     x : (d, 1) np.ndarray
         The solution to the least squares problem.
+    time_elapsed : float
+        Time taken to solve the least squares problem.
+    x_hats : List[np.ndarray]
+        List of intermediate solutions if log_x_hat is True.
     """
     assert b.ndim == 2, "The target vector should be a column vector."
     assert (
@@ -174,6 +183,10 @@ def _smoothed_sketch_and_apply(
     -------
     x : (d, 1) np.ndarray
         The solution to the least squares problem.
+    time_elapsed : float
+        Time taken to solve the least squares problem.
+    x_hats : List[np.ndarray]
+        List of intermediate solutions if log_x_hat is True.
     """
     assert b.ndim == 2, "The target vector should be a column vector."
     assert (

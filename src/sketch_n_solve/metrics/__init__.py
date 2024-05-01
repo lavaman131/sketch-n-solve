@@ -69,7 +69,7 @@ class LeastSquaresMetricCallback:
                     "n": A.shape[1],
                 }
                 start_time = time.perf_counter()
-                x, x_hats = lsqr(A, b, log_x_hat=True)
+                x, x_hats = lsqr(A, b, log_x_hat=True, iter_lim=50)
                 end_time = time.perf_counter()
                 time_elapsed = end_time - start_time
                 metadata["lstsq"].append(

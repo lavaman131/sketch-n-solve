@@ -1,10 +1,21 @@
 from collections import defaultdict
 from pathlib import Path
 import pickle
+from matplotlib import ticker
 import matplotlib.pyplot as plt
+import numpy as np
 import scienceplots
 
 plt.style.use(["science", "seaborn-v0_8-talk"])
+
+
+def format_func(value, pos):
+    if value != 0:
+        exp = int(np.floor(np.log10(abs(value))))
+        base = value / 10**exp
+        return r"${:.1f} \times 10^{{{}}}$".format(base, exp)
+    else:
+        return r"$0$"
 
 
 def main() -> None:
@@ -36,7 +47,7 @@ def main() -> None:
         times["lstsq"],
         marker="o",
         markersize=7.5,
-        label="QR",
+        label="LSQR",
     )
     ax.plot(
         rows["sketch_and_precondition"],
@@ -66,7 +77,7 @@ def main() -> None:
 
     ax.plot(
         residual_errors["lstsq"][-1],
-        label="QR",
+        label="LSQR",
     )
     ax.plot(
         residual_errors["sketch_and_precondition"][-1],
@@ -77,6 +88,7 @@ def main() -> None:
         label="SAA-SAS",
     )
     ax.legend(loc="upper left")
+    ax.set_yscale("log")
     ax.set_xlabel("Iterations")
     ax.set_ylabel(r"Residual Error $\frac{\|Ax - b\|_2}{\|b\|_2}$")
     ax.set_title(r"$n=10^3$")
@@ -92,7 +104,7 @@ def main() -> None:
 
     ax.plot(
         forward_errors["lstsq"][-1],
-        label="QR",
+        label="LSQR",
     )
     ax.plot(
         forward_errors["sketch_and_precondition"][-1],
@@ -103,6 +115,11 @@ def main() -> None:
         label="SAA-SAS",
     )
     ax.legend(loc="upper left")
+    # Create a FuncFormatter object with the formatting function
+    formatter = ticker.FuncFormatter(format_func)
+
+    # Set the formatter for the y-axis tick labels
+    ax.yaxis.set_major_formatter(formatter)
     ax.set_xlabel("Iterations")
     ax.set_ylabel(r"Forward Error $\frac{\|x - \hat{x}\|_2}{\|x\|_2}$")
     ax.set_title(r"$n=10^3$")

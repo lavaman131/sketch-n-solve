@@ -6,10 +6,21 @@ from numba import njit
 
 
 @njit(error_model="numpy")
+def check_convergence(
+    tolerance: float, A: np.ndarray, x: np.ndarray, b: np.ndarray
+) -> bool:
+    b_hat = A @ x
+    r = b - b_hat
+    cond_1 = LA.norm(A.T @ r) / (LA.norm(A) * LA.norm(r)) <= tolerance
+    cond_2 = LA.norm(r) / LA.norm(b) <= tolerance
+    return cond_1 and cond_2  # type: ignore
+
+
+@njit(error_model="numpy")
 def lsqr(
     A: np.ndarray,
     b: np.ndarray,
-    tol: float = 1e-12,
+    tol: float = 1e-6,
     iter_lim: Optional[int] = None,
     x0: Optional[np.ndarray] = None,
     log_x_hat: bool = False,
@@ -63,7 +74,7 @@ def lsqr(
         if log_x_hat:
             x_hats.append(x.copy())
 
-        if np.abs(phibar * alpha * c) <= tol * resnorm:
+        if check_convergence(tol, A, x, b):
             break
 
     return x, x_hats
