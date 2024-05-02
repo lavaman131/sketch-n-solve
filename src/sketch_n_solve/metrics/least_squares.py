@@ -1,6 +1,6 @@
 from typing import Optional
 import numpy as np
-import scipy.linalg as SLA
+import numpy.linalg as LA
 
 
 def forward_error(x: np.ndarray, x_hat: np.ndarray) -> float:
@@ -18,7 +18,8 @@ def forward_error(x: np.ndarray, x_hat: np.ndarray) -> float:
     float
         The forward error.
     """
-    return float(SLA.norm(x - x_hat) / SLA.norm(x))
+    assert x.ndim == 2, "The true solution should be a column vector."
+    return float(LA.norm(x - x_hat) / LA.norm(x))
 
 
 def residual_error(A: np.ndarray, y: np.ndarray, x_hat: np.ndarray) -> float:
@@ -36,9 +37,10 @@ def residual_error(A: np.ndarray, y: np.ndarray, x_hat: np.ndarray) -> float:
     residual_error : float
         The residual error.
     """
+    assert y.ndim == 2, "The target vector should be a column vector."
     y_hat = A @ x_hat
-    r = SLA.norm(y)
-    residual_error = SLA.norm(y - y_hat) / r
+    r = LA.norm(y)
+    residual_error = LA.norm(y - y_hat) / r
     return float(residual_error)
 
 
@@ -62,9 +64,10 @@ def backward_error(
     backward_error : float
         The backward error.
     """
-    norm_x = SLA.norm(x)
+    assert y.ndim == 2, "The target vector should be a column vector."
+    norm_x = LA.norm(x)
     r = y - A @ x
-    norm_r = SLA.norm(r)
+    norm_r = LA.norm(r)
 
     if theta:
         mu = theta**2 * norm_x**2 / (1 + theta**2 * norm_x**2)

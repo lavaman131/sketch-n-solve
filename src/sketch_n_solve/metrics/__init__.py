@@ -62,6 +62,8 @@ class LeastSquaresMetricCallback:
                     problem["cond"],
                     problem["beta"],
                 )
+                x = x.reshape(-1, 1)
+                b = b.reshape(-1, 1)
                 default_metadata = {
                     "norm_r": LA.norm(r_x),
                     "cond": cond,
