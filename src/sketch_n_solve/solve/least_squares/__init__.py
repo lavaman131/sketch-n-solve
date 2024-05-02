@@ -5,7 +5,6 @@ from .algorithms import (
     _smoothed_sketch_and_apply,
     _sketch_and_precondition,
 )
-from .utils import check_convergence
 from .. import Solver
 
 
@@ -25,11 +24,11 @@ class LeastSquares(Solver):
         A: np.ndarray,
         b: np.ndarray,
         use_sketch_and_solve_x_0: bool = True,
-        tolerance: float = 1e-12,
+        tolerance: float = 1e-6,
         iter_lim: Optional[int] = 100,
         log_x_hat: bool = False,
         **kwargs: Any,
-    ) -> Tuple[np.ndarray, float, List[np.ndarray]]:
+    ) -> Tuple[np.ndarray, float, List[np.ndarray], int]:
         """Solves the least squares problem using sketch and preconditioning as described in https://arxiv.org/pdf/2302.07202.pdf.
 
         Parameters
@@ -41,7 +40,7 @@ class LeastSquares(Solver):
         use_sketch_and_solve_x_0 : bool, optional
             Whether to use x_0 from sketch and solve as the initial guess for the least squares solver rather than the zero vector, by default True.
         tolerance : float, optional
-            Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-12.
+            Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-6.
         iter_lim : int, optional
             Maximum number of iterations for least-squares QR solver, by default 100.
         callback : Optional[Callable[[np.ndarray], None]], optional
@@ -59,20 +58,20 @@ class LeastSquares(Solver):
             List of intermediate solutions if log_x_hat is True.
         """
         A, S = self.sketch(A, **kwargs)
-        x, time_elapsed, x_hats = _sketch_and_precondition(
+        x, time_elapsed, x_hats, istop = _sketch_and_precondition(
             A, b, S, use_sketch_and_solve_x_0, tolerance, iter_lim, log_x_hat
         )
-        return x, time_elapsed, x_hats
+        return x, time_elapsed, x_hats, istop
 
     def sketch_and_apply(
         self,
         A: np.ndarray,
         b: np.ndarray,
-        tolerance: float = 1e-12,
+        tolerance: float = 1e-6,
         iter_lim: Optional[int] = 100,
         log_x_hat: bool = False,
         **kwargs: Any,
-    ) -> Tuple[np.ndarray, float, List[np.ndarray]]:
+    ) -> Tuple[np.ndarray, float, List[np.ndarray], int]:
         """Solves the least squares problem using sketch-and-apply as described in https://arxiv.org/pdf/2302.07202.pdf.
 
         Parameters
@@ -100,17 +99,18 @@ class LeastSquares(Solver):
             List of intermediate solutions if log_x_hat is True.
         """
         A, S = self.sketch(A, **kwargs)
-        x, time_elapsed_apply, x_hats_apply = _sketch_and_apply(
+        x, time_elapsed_apply, x_hats_apply, istop = _sketch_and_apply(
             A, b, S, tolerance, iter_lim // 2, log_x_hat
         )
 
-        if check_convergence(tolerance, A, x, b):
-            return x, time_elapsed_apply, x_hats_apply
-        x, time_elapsed_smoothed, x_hats_smoothed = _smoothed_sketch_and_apply(
+        if istop != 0:
+            return x, time_elapsed_apply, x_hats_apply, istop
+        x, time_elapsed_smoothed, x_hats_smoothed, istop = _smoothed_sketch_and_apply(
             A, b, S, tolerance, iter_lim // 2, self.seed, log_x_hat
         )
         return (
             x,
             time_elapsed_apply + time_elapsed_smoothed,
             x_hats_apply + x_hats_smoothed,
+            istop,
         )

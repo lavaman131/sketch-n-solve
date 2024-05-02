@@ -84,7 +84,7 @@ class LeastSquaresMetricCallback:
                         ),
                     }
                 )
-                x, time_elapsed, x_hats = lsq.sketch_and_precondition(
+                x, time_elapsed, x_hats, _ = lsq.sketch_and_precondition(
                     A, b, log_x_hat=True
                 )
                 metadata["sketch_and_precondition"].append(
@@ -96,7 +96,7 @@ class LeastSquaresMetricCallback:
                         ),
                     }
                 )
-                x, time_elapsed, x_hats = lsq.sketch_and_apply(
+                x, time_elapsed, x_hats, _ = lsq.sketch_and_apply(
                     A, b, sparsity_parameter=None, log_x_hat=True
                 )
 

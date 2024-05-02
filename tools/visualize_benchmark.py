@@ -63,7 +63,7 @@ def main() -> None:
         markersize=7.5,
         label="SAA-SAS",
     )
-    ax.legend(loc="upper left")
+    ax.legend(loc="best")
     ax.set_xscale("log")
     ax.set_xlabel(r"$m$")
     ax.set_ylabel("Time (sec)")
@@ -87,7 +87,7 @@ def main() -> None:
         residual_errors["sketch_and_apply"][-1],
         label="SAA-SAS",
     )
-    ax.legend(loc="upper left")
+    ax.legend(loc="best")
     ax.set_yscale("log")
     ax.set_xlabel("Iterations")
     ax.set_ylabel(r"Residual Error $\frac{\|Ax - b\|_2}{\|b\|_2}$")
@@ -101,7 +101,6 @@ def main() -> None:
 
     fig = plt.figure(figsize=(6.5, 5))
     ax = fig.add_subplot(111)
-    print(forward_errors["sketch_and_apply"][-1])
     ax.plot(
         forward_errors["lstsq"][-1],
         label="LSQR",
@@ -114,7 +113,7 @@ def main() -> None:
         forward_errors["sketch_and_apply"][-1],
         label="SAA-SAS",
     )
-    ax.legend(loc="upper left")
+    ax.legend(loc="best")
     # Create a FuncFormatter object with the formatting function
     formatter = ticker.FuncFormatter(format_func)
 

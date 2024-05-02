@@ -5,16 +5,6 @@ from typing import List, Optional, Tuple
 from scipy.sparse.linalg import aslinearoperator
 
 
-def check_convergence(
-    tolerance: float, A: np.ndarray, x: np.ndarray, b: np.ndarray
-) -> bool:
-    b_hat = A @ x
-    r = b - b_hat
-    cond_1 = LA.norm(A.T @ r) / (LA.norm(A) * LA.norm(r)) <= tolerance
-    cond_2 = LA.norm(r) / LA.norm(b) <= tolerance
-    return cond_1 and cond_2  # type: ignore
-
-
 eps = np.finfo(np.float64).eps
 
 
@@ -57,8 +47,8 @@ def lsqr(
     A,
     b,
     damp=0.0,
-    atol=1e-12,
-    btol=1e-12,
+    atol=1e-6,
+    btol=1e-6,
     conlim=1e8,
     log_x_hat=False,
     iter_lim=None,
@@ -346,8 +336,8 @@ def lsqr(
     r1norm = rnorm
     r2norm = rnorm
 
+    x_hats = []
     if log_x_hat:
-        x_hats = []
         x_hats.append(x.copy())
 
     # Reverse the order here from the original matlab code because
@@ -364,13 +354,13 @@ def lsqr(
         #     beta*u  =  a@v   -  alfa*u,
         #     alfa*v  =  A'@u  -  beta*v.
         u = A.matvec(v) - alfa * u
-        beta = np.linalg.norm(u)
+        beta = LA.norm(u)
 
         if beta > 0:
             u = (1 / beta) * u
             anorm = sqrt(anorm**2 + alfa**2 + beta**2 + dampsq)
             v = A.rmatvec(u) - beta * v
-            alfa = np.linalg.norm(v)
+            alfa = LA.norm(v)
             if alfa > 0:
                 v = (1 / alfa) * v
 
@@ -405,7 +395,6 @@ def lsqr(
         x = x + t1 * w
 
         if log_x_hat:
-            x_hats = []
             x_hats.append(x.copy())
 
         w = v + t2 * w
