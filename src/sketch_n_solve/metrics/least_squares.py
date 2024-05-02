@@ -77,6 +77,6 @@ def backward_error(
     phi = np.sqrt(mu) * norm_r / norm_x
     outer_product = np.outer(r, r) / norm_r**2
     matrix = np.hstack((A, phi * (np.eye(A.shape[0]) - outer_product)))
-    backward_error = np.minimum(phi, SLA.svd(matrix, compute_uv=False).min())  # type: ignore
+    backward_error = np.minimum(phi, LA.svd(matrix, compute_uv=False).min())  # type: ignore
 
     return backward_error

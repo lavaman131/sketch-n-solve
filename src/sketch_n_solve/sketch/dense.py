@@ -2,11 +2,12 @@ from typing import Any, Optional, Tuple
 import numpy as np
 import scipy.linalg as SLA
 import math
+from scipy.sparse.linalg import LinearOperator, aslinearoperator
 
 
 def uniform_dense(
     A: np.ndarray, k: int, seed: Optional[int] = 42, **kwargs: Any
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, LinearOperator]:
     """Implements uniform sketch as described in https://arxiv.org/pdf/2302.11474.pdf.
 
     Parameters
@@ -35,12 +36,12 @@ def uniform_dense(
 
     S = rng.uniform(-1, 1, size=(k, n))
 
-    return A, S
+    return A, aslinearoperator(S)
 
 
 def normal(
     A: np.ndarray, k: int, seed: Optional[int] = 42, **kwargs: Any
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, LinearOperator]:
     """Implements normal sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
 
     Parameters
@@ -69,12 +70,12 @@ def normal(
 
     S = rng.normal(loc=0, scale=(1 / k) ** 0.5, size=(k, n))
 
-    return A, S
+    return A, aslinearoperator(S)
 
 
 def hadamard(
     A: np.ndarray, k: int, seed: Optional[int] = 42, **kwargs: Any
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, LinearOperator]:
     r"""Implements Hadamard sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
 
     Parameters
@@ -104,4 +105,4 @@ def hadamard(
     D = np.diag(np.random.choice([-1, 1], size=n_padded))
     r = rng.integers(n_padded, size=k)
     S = H[r] @ H @ D / np.sqrt(k)
-    return A_padded, S
+    return A_padded, aslinearoperator(S)
