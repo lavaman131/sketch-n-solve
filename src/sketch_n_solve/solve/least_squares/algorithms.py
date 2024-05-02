@@ -5,14 +5,15 @@ import numpy.linalg as LA
 import scipy.linalg as SLA
 from scipy.linalg.lapack import dtrtrs as triangular_solve
 from sketch_n_solve.solve.least_squares.utils import lsqr
+from scipy.sparse.linalg import LinearOperator
 
 
 def _sketch_and_precondition(
-    A: np.ndarray,
+    A: LinearOperator,
     b: np.ndarray,
-    S: np.ndarray,
+    S: LinearOperator,
     use_sketch_and_solve_x_0: bool = True,
-    tolerance: float = 1e-6,
+    tolerance: float = 1e-12,
     iter_lim: Optional[int] = 100,
     log_x_hat: bool = False,
     **kwargs: Any,
@@ -21,16 +22,16 @@ def _sketch_and_precondition(
 
     Parameters
     ----------
-    A : (n, d) np.ndarray
-        The input matrix.
+    A : LinearOperator
+        The input matrix as a LinearOperator.
     b : (n, 1) np.ndarray
         The target vector.
-    S : np.ndarray
-        The sketch matrix.
+    S : LinearOperator
+        The sketch matrix as a LinearOperator.
     use_sketch_and_solve_x_0 : bool, optional
         Whether to use x_0 from sketch and solve as the initial guess for the least squares solver rather than the zero vector, by default True.
     tolerance : float, optional
-        Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-6.
+        Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-12.
     iter_lim : int, optional
         Maximum number of iterations for least-squares QR solver, by default 100.
     log_x_hat : bool, optional
@@ -47,7 +48,7 @@ def _sketch_and_precondition(
     x_hats : List[np.ndarray]
         List of intermediate solutions if log_x_hat is True.
     """
-    assert b.ndim == 2, "The target vector should be a column vector."
+    assert b.ndim == 1, "The target vector should be a vector."
     assert (
         A.shape[0] == b.shape[0]
     ), "The number of rows of the input matrix and the target vector should be the same."
@@ -55,19 +56,25 @@ def _sketch_and_precondition(
         iter_lim is None or iter_lim > 0
     ), "Number of iterations should be greater than 0."
     start_time = time.perf_counter()
-    B = S @ A
-    c = S @ b
+    B = S.matmat(A)
+    c = S.matvec(b)
     Q, R = SLA.qr(B, mode="economic", pivoting=False)  # type: ignore
 
     if use_sketch_and_solve_x_0:
-        x_0 = triangular_solve(R, Q.T @ c, lower=False)[0]  # type: ignore
+        x_0 = triangular_solve(R, Q.T @ c, lower=False)[0].squeeze()  # type: ignore
     else:
         x_0 = None
 
     A_precond = A @ triangular_solve(R, np.eye(R.shape[0]), lower=False)[0]
 
-    y, y_hats = lsqr(
-        A=A_precond, b=b, x0=x_0, tol=tolerance, iter_lim=iter_lim, log_x_hat=log_x_hat
+    y, y_hats, *_ = lsqr(
+        A=A_precond,
+        b=b,
+        x0=x_0,
+        atol=tolerance,
+        btol=tolerance,
+        iter_lim=iter_lim,
+        log_x_hat=log_x_hat,
     )
     x = triangular_solve(R, y, lower=False)[0]
     end_time = time.perf_counter()
@@ -80,10 +87,10 @@ def _sketch_and_precondition(
 
 
 def _sketch_and_apply(
-    A: np.ndarray,
+    A: LinearOperator,
     b: np.ndarray,
-    S: np.ndarray,
-    tolerance: float = 1e-6,
+    S: LinearOperator,
+    tolerance: float = 1e-12,
     iter_lim: Optional[int] = 100,
     log_x_hat: bool = False,
     **kwargs: Any,
@@ -92,14 +99,14 @@ def _sketch_and_apply(
 
     Parameters
     ----------
-    A : (n, d) np.ndarray
-        The input matrix.
+    A : LinearOperator
+        The input matrix as a LinearOperator.
     b : (n, 1) np.ndarray
         The target vector.
-    S : np.ndarray
-        The sketch matrix.
+    S : LinearOperator
+        The sketch matrix as a LinearOperator.
     tolerance : float, optional
-        Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-6.
+        Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-12.
     iter_lim : int, optional
         Maximum number of iterations for least-squares QR solver, by default 100.
     log_x_hat : bool, optional
@@ -116,7 +123,7 @@ def _sketch_and_apply(
     x_hats : List[np.ndarray]
         List of intermediate solutions if log_x_hat is True.
     """
-    assert b.ndim == 2, "The target vector should be a column vector."
+    assert b.ndim == 1, "The target vector should be a vector."
     assert (
         A.shape[0] == b.shape[0]
     ), "The number of rows of the input matrix and the target vector should be the same."
@@ -126,14 +133,16 @@ def _sketch_and_apply(
     ), "Number of iterations should be greater than 0."
 
     start_time = time.perf_counter()
-    B = S @ A
+    B = S.matmat(A)
+    c = S.matvec(b)
     Q, R = SLA.qr(B, mode="economic", pivoting=False)  # type: ignore
-    z_0 = Q.T @ S @ b  # type: ignore
-    z, z_hats = lsqr(
+    z_0 = (Q.T @ c).squeeze()  # type: ignore
+    z, z_hats, *_ = lsqr(
         A=Q,  # type: ignore
-        b=S @ b,
+        b=c,
         x0=z_0,
-        tol=tolerance,
+        atol=tolerance,
+        btol=tolerance,
         iter_lim=iter_lim,
         log_x_hat=log_x_hat,
     )
@@ -149,10 +158,10 @@ def _sketch_and_apply(
 
 
 def _smoothed_sketch_and_apply(
-    A: np.ndarray,
+    A: LinearOperator,
     b: np.ndarray,
-    S: np.ndarray,
-    tolerance: float = 1e-6,
+    S: LinearOperator,
+    tolerance: float = 1e-12,
     iter_lim: Optional[int] = 100,
     seed: Optional[int] = 42,
     log_x_hat: bool = False,
@@ -162,12 +171,12 @@ def _smoothed_sketch_and_apply(
 
     Parameters
     ----------
-    A : (n, d) np.ndarray
-        The input matrix.
+    A : LinearOperator
+        The input matrix as a LinearOperator.
     b : (n, 1) np.ndarray
         The target vector.
-    S : np.ndarray
-        The sketch matrix.
+    S : LinearOperator
+        The sketch matrix as a LinearOperator.
     tolerance : float
         Error tolerance. Controls the number of iterations if iter_lim is not specified.
     iter_lim : int, optional
@@ -188,7 +197,7 @@ def _smoothed_sketch_and_apply(
     x_hats : List[np.ndarray]
         List of intermediate solutions if log_x_hat is True.
     """
-    assert b.ndim == 2, "The target vector should be a column vector."
+    assert b.ndim == 1, "The target vector should be a vector."
     assert (
         A.shape[0] == b.shape[0]
     ), "The number of rows of the input matrix and the target vector should be the same."

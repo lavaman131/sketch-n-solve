@@ -101,7 +101,7 @@ def main() -> None:
 
     fig = plt.figure(figsize=(6.5, 5))
     ax = fig.add_subplot(111)
-
+    print(forward_errors["sketch_and_apply"][-1])
     ax.plot(
         forward_errors["lstsq"][-1],
         label="LSQR",

@@ -62,8 +62,8 @@ class LeastSquaresMetricCallback:
                     problem["cond"],
                     problem["beta"],
                 )
-                x = x.reshape(-1, 1)
-                b = b.reshape(-1, 1)
+                x = x.squeeze()
+                b = b.squeeze()
                 default_metadata = {
                     "norm_r": LA.norm(r_x),
                     "cond": cond,
@@ -72,7 +72,7 @@ class LeastSquaresMetricCallback:
                     "n": A.shape[1],
                 }
                 start_time = time.perf_counter()
-                x, x_hats = lsqr(A, b, log_x_hat=True, iter_lim=100)
+                x, x_hats, *_ = lsqr(A, b, log_x_hat=True, iter_lim=100)
                 end_time = time.perf_counter()
                 time_elapsed = end_time - start_time
                 metadata["lstsq"].append(

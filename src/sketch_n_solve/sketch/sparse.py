@@ -1,11 +1,12 @@
 from typing import Any, Optional, Tuple
 import numpy as np
 from scipy.sparse import csr_array, diags_array
+from scipy.sparse.linalg import LinearOperator, aslinearoperator
 
 
 def uniform_sparse(
     A: np.ndarray, k: int, seed: Optional[int] = 42, **kwargs: Any
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, LinearOperator]:
     """Implements uniform sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
 
     Parameters
@@ -37,12 +38,13 @@ def uniform_sparse(
     S = csr_array((np.ones(k), (r, i)), shape=(k, n))
 
     scale = np.sqrt(n / k)
-    return A, S * scale
+    S *= scale
+    return A, aslinearoperator(S)
 
 
 def clarkson_woodruff(
     A: np.ndarray, k: int, seed: Optional[int] = 42, **kwargs: Any
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, LinearOperator]:
     """Implements Clarkson-Woodruff sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
 
     Parameters
@@ -73,7 +75,7 @@ def clarkson_woodruff(
     D = diags_array(rng.choice([-1.0, 1.0], n))
     S = T @ D
 
-    return A, S
+    return A, aslinearoperator(S)
 
 
 def sparse_sign(
@@ -81,7 +83,7 @@ def sparse_sign(
     sparsity_parameter: Optional[int] = None,
     seed: Optional[int] = 42,
     **kwargs: Any,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, LinearOperator]:
     r"""Implements sparse sign sketch as described in https://arxiv.org/pdf/2002.01387.pdf.
 
     Parameters
@@ -116,4 +118,4 @@ def sparse_sign(
     cols = np.repeat(np.arange(n), zeta)
     S = csr_array((data, (rows, cols)), shape=(d, n))
     S *= 1 / np.sqrt(zeta)
-    return A, S
+    return A, aslinearoperator(S)

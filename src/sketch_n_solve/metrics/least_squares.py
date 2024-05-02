@@ -18,7 +18,7 @@ def forward_error(x: np.ndarray, x_hat: np.ndarray) -> float:
     float
         The forward error.
     """
-    assert x.ndim == 2, "The true solution should be a column vector."
+    assert x.ndim == 1, "The true solution should be a vector."
     return float(LA.norm(x - x_hat) / LA.norm(x))
 
 
@@ -37,7 +37,7 @@ def residual_error(A: np.ndarray, y: np.ndarray, x_hat: np.ndarray) -> float:
     residual_error : float
         The residual error.
     """
-    assert y.ndim == 2, "The target vector should be a column vector."
+    assert y.ndim == 1, "The target vector should be a vector."
     y_hat = A @ x_hat
     r = LA.norm(y)
     residual_error = LA.norm(y - y_hat) / r
@@ -64,7 +64,7 @@ def backward_error(
     backward_error : float
         The backward error.
     """
-    assert y.ndim == 2, "The target vector should be a column vector."
+    assert y.ndim == 1, "The target vector should be a vector."
     norm_x = LA.norm(x)
     r = y - A @ x
     norm_r = LA.norm(r)
