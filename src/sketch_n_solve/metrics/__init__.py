@@ -9,11 +9,12 @@ from sketch_n_solve.metrics.least_squares import (
     residual_error,
 )
 from typing import TypedDict
-import scipy.linalg as SLA
+import numpy.linalg as LA
 from sketch_n_solve.solve.least_squares import LeastSquares
 from tqdm import tqdm
 import h5py
 from sketch_n_solve.solve.least_squares.utils import lsqr
+from scipy.sparse import csr_array
 
 
 class LeastSquaresMetaData(TypedDict):
@@ -61,15 +62,17 @@ class LeastSquaresMetricCallback:
                     problem["cond"],
                     problem["beta"],
                 )
+                A = csr_array(A)
+                b = np.array(b).reshape(-1, 1)
                 default_metadata = {
-                    "norm_r": SLA.norm(r_x),
+                    "norm_r": LA.norm(r_x),
                     "cond": cond,
                     "beta": beta,
                     "m": A.shape[0],
                     "n": A.shape[1],
                 }
                 start_time = time.perf_counter()
-                x, x_hats = lsqr(A, b, log_x_hat=True, iter_lim=50)
+                x, x_hats = lsqr(A, b, log_x_hat=True, iter_lim=100)
                 end_time = time.perf_counter()
                 time_elapsed = end_time - start_time
                 metadata["lstsq"].append(

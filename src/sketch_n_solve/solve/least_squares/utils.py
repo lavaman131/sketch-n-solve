@@ -1,22 +1,19 @@
-import time
 import numpy as np
 import numpy.linalg as LA
 from typing import List, Optional, Tuple
-from numba import njit
 
 
-@njit(error_model="numpy")
 def check_convergence(
     tolerance: float, A: np.ndarray, x: np.ndarray, b: np.ndarray
 ) -> bool:
     b_hat = A @ x
     r = b - b_hat
-    cond_1 = LA.norm(A.T @ r) / (LA.norm(A) * LA.norm(r)) <= tolerance
+    A_norm = np.sqrt(np.sum(A**2))
+    cond_1 = LA.norm(A.T @ r) / (A_norm * LA.norm(r)) <= tolerance
     cond_2 = LA.norm(r) / LA.norm(b) <= tolerance
     return cond_1 and cond_2  # type: ignore
 
 
-@njit(error_model="numpy")
 def lsqr(
     A: np.ndarray,
     b: np.ndarray,

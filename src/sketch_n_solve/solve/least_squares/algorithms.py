@@ -13,7 +13,7 @@ def _sketch_and_precondition(
     S: np.ndarray,
     use_sketch_and_solve_x_0: bool = True,
     tolerance: float = 1e-6,
-    iter_lim: Optional[int] = None,
+    iter_lim: Optional[int] = 100,
     log_x_hat: bool = False,
     **kwargs: Any,
 ) -> Tuple[np.ndarray, float, List[np.ndarray]]:
@@ -32,7 +32,7 @@ def _sketch_and_precondition(
     tolerance : float, optional
         Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-6.
     iter_lim : int, optional
-        Maximum number of iterations for least-squares QR solver, by default None.
+        Maximum number of iterations for least-squares QR solver, by default 100.
     log_x_hat : bool, optional
         Whether to log the intermediate solutions, by default False.
     **kwargs : Any
@@ -84,7 +84,7 @@ def _sketch_and_apply(
     b: np.ndarray,
     S: np.ndarray,
     tolerance: float = 1e-6,
-    iter_lim: Optional[int] = None,
+    iter_lim: Optional[int] = 100,
     log_x_hat: bool = False,
     **kwargs: Any,
 ) -> Tuple[np.ndarray, float, List[np.ndarray]]:
@@ -101,7 +101,7 @@ def _sketch_and_apply(
     tolerance : float, optional
         Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-6.
     iter_lim : int, optional
-        Maximum number of iterations for least-squares QR solver, by default None.
+        Maximum number of iterations for least-squares QR solver, by default 100.
     log_x_hat : bool, optional
         Whether to log the intermediate solutions, by default False.
     **kwargs : Any
@@ -153,7 +153,7 @@ def _smoothed_sketch_and_apply(
     b: np.ndarray,
     S: np.ndarray,
     tolerance: float = 1e-6,
-    iter_lim: Optional[int] = None,
+    iter_lim: Optional[int] = 100,
     seed: Optional[int] = 42,
     log_x_hat: bool = False,
     **kwargs: Any,
@@ -171,7 +171,7 @@ def _smoothed_sketch_and_apply(
     tolerance : float
         Error tolerance. Controls the number of iterations if iter_lim is not specified.
     iter_lim : int, optional
-        Maximum number of iterations for least-squares QR solver, by default None. If specified will overwrite tolerance parameter for error tolerance.
+        Maximum number of iterations for least-squares QR solver, by default 100. If specified will overwrite tolerance parameter for error tolerance.
     seed : int, optional
         Random seed for generation of G, by default 42.
     log_x_hat : bool, optional

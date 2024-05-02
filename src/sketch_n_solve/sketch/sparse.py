@@ -34,7 +34,7 @@ def uniform_sparse(
 
     r = np.arange(k)
     i = rng.integers(n, size=k)
-    S = scipy.sparse.csr_matrix((np.ones(k), (r, i)), shape=(k, n))
+    S = scipy.sparse.csr_array((np.ones(k), (r, i)), shape=(k, n))
 
     scale = np.sqrt(n / k)
     return A, S * scale
