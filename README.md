@@ -27,7 +27,7 @@ from sketch_n_solve.solve.least_squares import LeastSquares
 sketch_fn = "sparse_sign"
 seed = 42
 A = np.random.randn(10000, 10)
-x = np.random.randn(10, 1)
+x = np.random.randn(10)
 b = A @ x
 lsq = LeastSquares(sketch_fn, seed)
 
