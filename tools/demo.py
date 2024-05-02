@@ -11,7 +11,7 @@ lsq = LeastSquares(sketch_fn, seed)
 
 print(lsq.sketch_and_apply.__doc__)
 
-x_hat, time_elapsed, x_hats = lsq.sketch_and_apply(A, b, sparsity_parameter=None)
+x_hat, time_elapsed, x_hats, istop = lsq.sketch_and_apply(A, b, sparsity_parameter=None)
 
 print(x, x_hat)
 print("residual", LA.norm(A @ x_hat - A @ x))
