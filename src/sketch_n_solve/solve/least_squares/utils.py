@@ -8,8 +8,7 @@ def check_convergence(
 ) -> bool:
     b_hat = A @ x
     r = b - b_hat
-    A_norm = np.sqrt(np.sum(A**2))
-    cond_1 = LA.norm(A.T @ r) / (A_norm * LA.norm(r)) <= tolerance
+    cond_1 = LA.norm(A.T @ r) / (LA.norm(A) * LA.norm(r)) <= tolerance
     cond_2 = LA.norm(r) / LA.norm(b) <= tolerance
     return cond_1 and cond_2  # type: ignore
 

@@ -1,6 +1,6 @@
 from typing import Any, Optional, Tuple
 import numpy as np
-import scipy.sparse
+from scipy.sparse import csr_array, diags_array
 
 
 def uniform_sparse(
@@ -34,7 +34,7 @@ def uniform_sparse(
 
     r = np.arange(k)
     i = rng.integers(n, size=k)
-    S = scipy.sparse.csr_array((np.ones(k), (r, i)), shape=(k, n))
+    S = csr_array((np.ones(k), (r, i)), shape=(k, n))
 
     scale = np.sqrt(n / k)
     return A, S * scale
@@ -69,10 +69,8 @@ def clarkson_woodruff(
 
     rng = np.random.default_rng(seed)
 
-    T = scipy.sparse.csr_array(
-        (np.ones(n), (rng.integers(k, size=n), np.arange(n))), shape=(k, n)
-    )
-    D = scipy.sparse.diags_array(rng.choice([-1.0, 1.0], n))
+    T = csr_array((np.ones(n), (rng.integers(k, size=n), np.arange(n))), shape=(k, n))
+    D = diags_array(rng.choice([-1.0, 1.0], n))
     S = T @ D
 
     return A, S
@@ -116,6 +114,6 @@ def sparse_sign(
     data = rng.choice([-1.0, 1.0], size=size)
     rows = rng.integers(d, size=size)
     cols = np.repeat(np.arange(n), zeta)
-    S = scipy.sparse.csr_array((data, (rows, cols)), shape=(d, n))
+    S = csr_array((data, (rows, cols)), shape=(d, n))
     S *= 1 / np.sqrt(zeta)
     return A, S

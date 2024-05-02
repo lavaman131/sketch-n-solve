@@ -7,7 +7,6 @@ from .algorithms import (
 )
 from .utils import check_convergence
 from .. import Solver
-from scipy.sparse import csr_array
 
 
 class LeastSquares(Solver):
@@ -59,7 +58,6 @@ class LeastSquares(Solver):
         x_hats : List[np.ndarray]
             List of intermediate solutions if log_x_hat is True.
         """
-        A = csr_array(A)
         A, S = self.sketch(A, **kwargs)
         x, time_elapsed, x_hats = _sketch_and_precondition(
             A, b, S, use_sketch_and_solve_x_0, tolerance, iter_lim, log_x_hat
@@ -101,7 +99,6 @@ class LeastSquares(Solver):
         x_hats : List[np.ndarray]
             List of intermediate solutions if log_x_hat is True.
         """
-        A = csr_array(A)
         A, S = self.sketch(A, **kwargs)
         x, time_elapsed_apply, x_hats_apply = _sketch_and_apply(
             A, b, S, tolerance, iter_lim, log_x_hat
