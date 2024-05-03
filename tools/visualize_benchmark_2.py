@@ -70,7 +70,7 @@ def main() -> None:
     ax.set_xscale("log")
     ax.set_xlabel(r"$m$")
     ax.set_ylabel("Time (sec)")
-    ax.set_title(r"$n=10^3$")
+    ax.set_title(r"$n=10^3, \kappa(A) = 10^{10}, \| Ax^* - b \|_2 = 10^{-12}$")
     plt.savefig(
         visuals_dir.joinpath("benchmark_times.png"), dpi=600, bbox_inches="tight"
     )
@@ -94,7 +94,7 @@ def main() -> None:
     ax.set_yscale("log")
     ax.set_xlabel("Iterations")
     ax.set_ylabel(r"Residual Error $\frac{\|Ax - b\|_2}{\|b\|_2}$")
-    ax.set_title(r"$n=10^3$")
+    ax.set_title(r"$n=10^3, \kappa(A) = 10^{10}, \| Ax^* - b \|_2 = 10^{-12}$")
 
     plt.savefig(
         visuals_dir.joinpath("benchmark_residual_error.png"),
@@ -124,7 +124,7 @@ def main() -> None:
     ax.yaxis.set_major_formatter(formatter)
     ax.set_xlabel("Iterations")
     ax.set_ylabel(r"Forward Error $\frac{\|x - \hat{x}\|_2}{\|x\|_2}$")
-    ax.set_title(r"$n=10^3$")
+    ax.set_title(r"$n=10^3, \kappa(A) = 10^{10}, \| Ax^* - b \|_2 = 10^{-12}$")
     plt.savefig(
         visuals_dir.joinpath("benchmark_forward_error.png"),
         dpi=600,
@@ -154,7 +154,7 @@ def main() -> None:
         ax.yaxis.set_major_formatter(formatter)
         ax.set_xlabel("Iterations")
         ax.set_ylabel(r"Backward Error")
-        ax.set_title(r"$n=10^3$")
+        ax.set_title(r"$n=10^3, \kappa(A) = 10^{10}, \| Ax^* - b \|_2 = 10^{-12}$")
         plt.savefig(
             visuals_dir.joinpath("benchmark_backward_error.png"),
             dpi=600,
