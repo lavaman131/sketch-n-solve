@@ -17,18 +17,21 @@ def main() -> None:
     benchmark_dir.mkdir(exist_ok=True)
     precomputed_problems_dir = output_dir.joinpath("precomputed_problems")
     problem_paths = list(precomputed_problems_dir.glob("*.h5"))
-    sketch_fn = "sparse_sign"
+    sketch_fn = "clarkson_woodruff"
     lsq = LeastSquares(sketch_fn, seed)
+
     if benchmark_dir.joinpath("metadata.pkl").exists():
         with open(benchmark_dir.joinpath("metadata.pkl"), "rb") as f:
             metadata = pickle.load(f)
     else:
         metadata = defaultdict(list)
+
     metric_callback = LeastSquaresMetricCallback(metadata=metadata)
-    # metadata = metric_callback(method="lstsq", problem_paths=problem_paths, lsq=lsq)
-    # metadata = metric_callback(
-    #     method="sketch_and_precondition", problem_paths=problem_paths, lsq=lsq
-    # )
+
+    metadata = metric_callback(method="lstsq", problem_paths=problem_paths, lsq=lsq)
+    metadata = metric_callback(
+        method="sketch_and_precondition", problem_paths=problem_paths, lsq=lsq
+    )
     metadata = metric_callback(
         method="sketch_and_apply", problem_paths=problem_paths, lsq=lsq
     )

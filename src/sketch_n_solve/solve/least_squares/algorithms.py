@@ -5,7 +5,7 @@ import numpy.linalg as LA
 
 from scipy.linalg.lapack import dtrtrs as triangular_solve
 from sketch_n_solve.solve.least_squares.utils import lsqr
-from scipy.sparse.linalg import LinearOperator
+from scipy.sparse.linalg import LinearOperator, aslinearoperator
 from scipy.linalg import lstsq
 
 
@@ -28,16 +28,18 @@ def _sketch_and_precondition(
     B = S.matmat(A)
     c = S.matvec(b)
     Q, R = LA.qr(B)
-    R_inv = triangular_solve(R, np.eye(R.shape[1]), lower=False)[0]
+
+    Q_tranpose = aslinearoperator(Q.transpose())
+
+    R_inv = aslinearoperator(triangular_solve(R, np.eye(R.shape[1]), lower=False)[0])
 
     if use_sketch_and_solve_x_0:
-        x_0 = R_inv @ Q.T @ c
+        x_0 = R_inv.matvec(Q_tranpose.matvec(c))
     else:
         x_0 = None
 
-    A_precond = A @ R_inv
     y, y_hats, istop, *_ = lsqr(
-        A=A_precond,
+        A=A @ R_inv,
         b=b,
         x0=x_0,
         atol=tolerance,
@@ -45,13 +47,14 @@ def _sketch_and_precondition(
         iter_lim=iter_lim,
         log_x_hat=log_x_hat,
     )
-    x = R_inv @ y
+    x = R_inv.matvec(y)
+
     end_time = time.perf_counter()
     time_elapsed = end_time - start_time
 
     x_hats = []
     if log_x_hat:
-        x_hats = [R_inv @ y_hat for y_hat in y_hats]
+        x_hats = [R_inv.matvec(y_hat) for y_hat in y_hats]
 
     return x, time_elapsed, x_hats, istop
 
