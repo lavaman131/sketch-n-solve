@@ -23,7 +23,7 @@ def uniform_dense(
     -------
     A : (m, n) np.ndarray
         The input matrix.
-    S : (k, m) np.ndarray
+    S : (d, m) np.ndarray
         The sketch matrix.
     """
 
@@ -60,7 +60,7 @@ def normal(
     -------
     A : (m, n) np.ndarray
         The input matrix.
-    S : (k, m) np.ndarray
+    S : (d, m) np.ndarray
         The sketch matrix.
     """
 
@@ -97,7 +97,7 @@ def hadamard(
     -------
     A_padded (n_padded, d) : np.ndarray
         The input matrix padded to the nearest power of 2 with zeros where n_padded = :math:`2^{\lceil \log_2 n \rceil}`.
-    S : (k, n_padded) np.ndarray
+    S : (d, n_padded) np.ndarray
         The sketch matrix where n_padded = :math:`2^{\lceil \log_2 n \rceil}`.
     """
 

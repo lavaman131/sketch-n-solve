@@ -23,7 +23,7 @@ def uniform_sparse(
     -------
     A : (m, n) np.ndarray
         The input matrix.
-    S : (k, m) np.ndarray
+    S : (d, m) np.ndarray
         The sketch matrix.
     """
 
