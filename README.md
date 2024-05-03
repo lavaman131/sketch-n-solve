@@ -19,6 +19,20 @@ poetry install
 
 ## 🛠️ Usage
 
+### List of Available Sketch Functions
+
+```python
+from sketch_n_solve import sketch
+sketch.Sketch.list_available_sketch_fns()
+
+# for information about arguments for each sketch function use the help method in Python
+# e.g. for dense sketch function
+help(sketch.dense.normal)
+# e.g. for sparse sketch function
+help(sketch.sparse.clarkson_woodruff)
+```
+
+
 ### ⚡️ Fast Sparse Sketch Operators
 
 ```python

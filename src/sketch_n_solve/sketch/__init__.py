@@ -2,6 +2,7 @@
 from typing import Any, Callable, Optional, Set, Tuple, TypeAlias
 import numpy as np
 import importlib
+from . import dense, sparse
 
 sketch_fn_type: TypeAlias = Callable[..., Tuple[np.ndarray, np.ndarray]]
 
