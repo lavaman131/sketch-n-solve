@@ -147,7 +147,7 @@ def _sketch_and_apply(
     time_elapsed = end_time - start_time
     x_hats = []
     if log_x_hat:
-        x_hats = [solve(R, z) for z_hat in z_hats]
+        x_hats = [solve(R, z_hat) for z_hat in z_hats]
 
     return x, time_elapsed, x_hats, istop
 

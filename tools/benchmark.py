@@ -28,10 +28,10 @@ def main() -> None:
 
     metric_callback = LeastSquaresMetricCallback(metadata=metadata)
 
-    metadata = metric_callback(method="lstsq", problem_paths=problem_paths, lsq=lsq)
-    metadata = metric_callback(
-        method="sketch_and_precondition", problem_paths=problem_paths, lsq=lsq
-    )
+    # metadata = metric_callback(method="lstsq", problem_paths=problem_paths, lsq=lsq)
+    # metadata = metric_callback(
+    #     method="sketch_and_precondition", problem_paths=problem_paths, lsq=lsq
+    # )
     metadata = metric_callback(
         method="sketch_and_apply", problem_paths=problem_paths, lsq=lsq
     )

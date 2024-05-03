@@ -131,34 +131,35 @@ def main() -> None:
         bbox_inches="tight",
     )
 
-    fig = plt.figure(figsize=(6.5, 5))
-    ax = fig.add_subplot(111)
-    ax.plot(
-        backward_errors["lstsq"][-1],
-        label="LSQR",
-    )
-    ax.plot(
-        backward_errors["sketch_and_precondition"][-1],
-        label="SAP-SAS",
-    )
-    ax.plot(
-        backward_errors["sketch_and_apply"][-1],
-        label="SAA-SAS",
-    )
-    ax.legend(loc="best")
-    # Create a FuncFormatter object with the formatting function
-    formatter = ticker.FuncFormatter(format_func)
+    if backward_errors:
+        fig = plt.figure(figsize=(6.5, 5))
+        ax = fig.add_subplot(111)
+        ax.plot(
+            backward_errors["lstsq"][-1],
+            label="LSQR",
+        )
+        ax.plot(
+            backward_errors["sketch_and_precondition"][-1],
+            label="SAP-SAS",
+        )
+        ax.plot(
+            backward_errors["sketch_and_apply"][-1],
+            label="SAA-SAS",
+        )
+        ax.legend(loc="best")
+        # Create a FuncFormatter object with the formatting function
+        formatter = ticker.FuncFormatter(format_func)
 
-    # Set the formatter for the y-axis tick labels
-    ax.yaxis.set_major_formatter(formatter)
-    ax.set_xlabel("Iterations")
-    ax.set_ylabel(r"Backward Error")
-    ax.set_title(r"$n=10^3$")
-    plt.savefig(
-        visuals_dir.joinpath("benchmark_backward_error.png"),
-        dpi=600,
-        bbox_inches="tight",
-    )
+        # Set the formatter for the y-axis tick labels
+        ax.yaxis.set_major_formatter(formatter)
+        ax.set_xlabel("Iterations")
+        ax.set_ylabel(r"Backward Error")
+        ax.set_title(r"$n=10^3$")
+        plt.savefig(
+            visuals_dir.joinpath("benchmark_backward_error.png"),
+            dpi=600,
+            bbox_inches="tight",
+        )
 
 
 if __name__ == "__main__":

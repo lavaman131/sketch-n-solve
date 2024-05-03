@@ -14,6 +14,7 @@ from sketch_n_solve.solve.least_squares import LeastSquares
 from tqdm import tqdm
 import h5py
 from sketch_n_solve.solve.least_squares.utils import lsqr
+from scipy.sparse import csc_array
 
 
 class LeastSquaresMetaData(TypedDict):
@@ -84,7 +85,7 @@ class LeastSquaresMetricCallback:
                             "time_elapsed": time_elapsed,
                             **default_metadata,
                             **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
-                                A, b, x, x_hats, calculate_backward_error=True
+                                A, b, x, x_hats, calculate_backward_error=False
                             ),
                         }
                     )
@@ -97,7 +98,7 @@ class LeastSquaresMetricCallback:
                             "time_elapsed": time_elapsed,
                             **default_metadata,
                             **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
-                                A, b, x, x_hats, calculate_backward_error=True
+                                A, b, x, x_hats, calculate_backward_error=False
                             ),
                         }
                     )
@@ -111,7 +112,7 @@ class LeastSquaresMetricCallback:
                             "time_elapsed": time_elapsed,
                             **default_metadata,
                             **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
-                                A, b, x, x_hats, calculate_backward_error=True
+                                A, b, x, x_hats, calculate_backward_error=False
                             ),
                         }
                     )
