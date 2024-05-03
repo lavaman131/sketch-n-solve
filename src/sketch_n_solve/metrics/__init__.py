@@ -53,6 +53,7 @@ class LeastSquaresMetricCallback:
         method: str,
         problem_paths: List[Path],
         lsq: LeastSquares,
+        calculate_backward_error: bool = False,
     ) -> List[LeastSquaresMetaData]:
         for problem_path in tqdm(problem_paths):
             with h5py.File(problem_path, "r") as f:
@@ -85,23 +86,27 @@ class LeastSquaresMetricCallback:
                             "time_elapsed": time_elapsed,
                             **default_metadata,
                             **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
-                                A, b, x, x_hats, calculate_backward_error=False
+                                A,
+                                b,
+                                x,
+                                x_hats,
+                                calculate_backward_error=calculate_backward_error,
                             ),
                         }
                     )
-                elif method == "sketch_and_precondition":
-                    x, time_elapsed, x_hats, _ = lsq.sketch_and_precondition(
-                        A, b, log_x_hat=True
-                    )
-                    self.metadata["sketch_and_precondition"].append(
-                        {
-                            "time_elapsed": time_elapsed,
-                            **default_metadata,
-                            **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
-                                A, b, x, x_hats, calculate_backward_error=False
-                            ),
-                        }
-                    )
+                # elif method == "sketch_and_precondition":
+                #     x, time_elapsed, x_hats, _ = lsq.sketch_and_precondition(
+                #         A, b, log_x_hat=True
+                #     )
+                #     self.metadata["sketch_and_precondition"].append(
+                #         {
+                #             "time_elapsed": time_elapsed,
+                #             **default_metadata,
+                #             **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
+                #                 A, b, x, x_hats, calculate_backward_error=calculate_backward_error
+                #             ),
+                #         }
+                #     )
                 elif method == "lstsq":
                     start_time = time.perf_counter()
                     x, x_hats, *_ = lsqr(A, b, log_x_hat=True, iter_lim=100)
@@ -112,7 +117,11 @@ class LeastSquaresMetricCallback:
                             "time_elapsed": time_elapsed,
                             **default_metadata,
                             **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
-                                A, b, x, x_hats, calculate_backward_error=False
+                                A,
+                                b,
+                                x,
+                                x_hats,
+                                calculate_backward_error=calculate_backward_error,
                             ),
                         }
                     )
