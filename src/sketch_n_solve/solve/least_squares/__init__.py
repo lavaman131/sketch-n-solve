@@ -24,7 +24,7 @@ class LeastSquares(Solver):
         A: np.ndarray,
         b: np.ndarray,
         use_sketch_and_solve_x_0: bool = True,
-        tolerance: float = 1e-6,
+        tolerance: float = 1e-12,
         iter_lim: Optional[int] = 100,
         log_x_hat: bool = False,
         **kwargs: Any,
@@ -40,7 +40,7 @@ class LeastSquares(Solver):
         use_sketch_and_solve_x_0 : bool, optional
             Whether to use x_0 from sketch and solve as the initial guess for the least squares solver rather than the zero vector, by default True.
         tolerance : float, optional
-            Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-6.
+            Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-12.
         iter_lim : int, optional
             Maximum number of iterations for least-squares QR solver, by default 100.
         callback : Optional[Callable[[np.ndarray], None]], optional
@@ -67,7 +67,7 @@ class LeastSquares(Solver):
         self,
         A: np.ndarray,
         b: np.ndarray,
-        tolerance: float = 1e-6,
+        tolerance: float = 1e-12,
         iter_lim: Optional[int] = 100,
         log_x_hat: bool = False,
         **kwargs: Any,

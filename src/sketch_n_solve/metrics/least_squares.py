@@ -48,7 +48,8 @@ def backward_error(
     A: np.ndarray, y: np.ndarray, x: np.ndarray, theta: Optional[float] = None
 ) -> float:
     r"""Compute the backward error.
-    If the backward error is small, then :math:`\\hat{x}` is the true solution to nearly the right least-squares problem.
+    If the backward error is small, then :math:`\hat{x}` is the true solution to nearly the right least-squares problem.
+
     Parameters
     ----------
     A : np.ndarray
@@ -59,6 +60,7 @@ def backward_error(
         The true solution.
     theta : float, optional
         by default np.inf
+
     Returns
     -------
     backward_error : float
@@ -68,15 +70,16 @@ def backward_error(
     norm_x = LA.norm(x)
     r = y - A @ x
     norm_r = LA.norm(r)
-
     if theta:
         mu = theta**2 * norm_x**2 / (1 + theta**2 * norm_x**2)
     else:
         mu = 1
 
-    phi = np.sqrt(mu) * norm_r / norm_x
-    outer_product = np.outer(r, r) / norm_r**2
-    matrix = np.hstack((A, phi * (np.eye(A.shape[0]) - outer_product)))
-    backward_error = np.minimum(phi, LA.svd(matrix, compute_uv=False).min())  # type: ignore
+    epsilon = 1e-12  # Small epsilon value to prevent division by zero
+    phi = np.sqrt(mu) * norm_r / (norm_x + epsilon)
+
+    # Compute the backward error using the matrix [A, phi*r]
+    matrix = np.hstack((A, phi * r.reshape(-1, 1)))
+    backward_error = LA.svd(matrix, compute_uv=False).min()  # type: ignore
 
     return backward_error

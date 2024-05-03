@@ -1,7 +1,7 @@
 from collections import defaultdict
 from pathlib import Path
 import time
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 import numpy as np
 from sketch_n_solve.metrics.least_squares import (
     backward_error,
@@ -27,6 +27,9 @@ class LeastSquaresMetaData(TypedDict):
 
 
 class LeastSquaresMetricCallback:
+    def __init__(self, metadata: Dict[str, Any] = defaultdict(list)) -> None:
+        self.metadata = metadata
+
     @staticmethod
     def calculate_least_squares_error_metrics_batch(
         A: np.ndarray,
@@ -46,10 +49,10 @@ class LeastSquaresMetricCallback:
 
     def __call__(
         self,
+        method: str,
         problem_paths: List[Path],
         lsq: LeastSquares,
     ) -> List[LeastSquaresMetaData]:
-        metadata = defaultdict(list)
         for problem_path in tqdm(problem_paths):
             with h5py.File(problem_path, "r") as f:
                 problem = {key: np.array(f[key]) for key in f.keys()}
@@ -70,42 +73,49 @@ class LeastSquaresMetricCallback:
                     "m": A.shape[0],
                     "n": A.shape[1],
                 }
-                start_time = time.perf_counter()
-                x, x_hats, *_ = lsqr(A, b, log_x_hat=True, iter_lim=100)
-                end_time = time.perf_counter()
-                time_elapsed = end_time - start_time
-                metadata["lstsq"].append(
-                    {
-                        "time_elapsed": time_elapsed,
-                        **default_metadata,
-                        **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
-                            A, b, x, x_hats, calculate_backward_error=True
-                        ),
-                    }
-                )
-                x, time_elapsed, x_hats, _ = lsq.sketch_and_precondition(
-                    A, b, log_x_hat=True
-                )
-                metadata["sketch_and_precondition"].append(
-                    {
-                        "time_elapsed": time_elapsed,
-                        **default_metadata,
-                        **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
-                            A, b, x, x_hats, calculate_backward_error=True
-                        ),
-                    }
-                )
-                x, time_elapsed, x_hats, _ = lsq.sketch_and_apply(
-                    A, b, sparsity_parameter=None, log_x_hat=True
-                )
 
-                metadata["sketch_and_apply"].append(
-                    {
-                        "time_elapsed": time_elapsed,
-                        **default_metadata,
-                        **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
-                            A, b, x, x_hats, calculate_backward_error=True
-                        ),
-                    }
-                )
-        return metadata  # type: ignore
+                if method == "sketch_and_apply":
+                    x, time_elapsed, x_hats, _ = lsq.sketch_and_apply(
+                        A, b, sparsity_parameter=None, log_x_hat=True
+                    )
+
+                    self.metadata["sketch_and_apply"].append(
+                        {
+                            "time_elapsed": time_elapsed,
+                            **default_metadata,
+                            **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
+                                A, b, x, x_hats, calculate_backward_error=True
+                            ),
+                        }
+                    )
+                elif method == "sketch_and_precondition":
+                    x, time_elapsed, x_hats, _ = lsq.sketch_and_precondition(
+                        A, b, log_x_hat=True
+                    )
+                    self.metadata["sketch_and_precondition"].append(
+                        {
+                            "time_elapsed": time_elapsed,
+                            **default_metadata,
+                            **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
+                                A, b, x, x_hats, calculate_backward_error=True
+                            ),
+                        }
+                    )
+                elif method == "lstsq":
+                    start_time = time.perf_counter()
+                    x, x_hats, *_ = lsqr(A, b, log_x_hat=True, iter_lim=100)
+                    end_time = time.perf_counter()
+                    time_elapsed = end_time - start_time
+                    self.metadata["lstsq"].append(
+                        {
+                            "time_elapsed": time_elapsed,
+                            **default_metadata,
+                            **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
+                                A, b, x, x_hats, calculate_backward_error=True
+                            ),
+                        }
+                    )
+                else:
+                    raise NotImplementedError(f"Unknown method: {method}")
+
+        return self.metadata  # type: ignore

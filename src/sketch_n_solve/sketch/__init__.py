@@ -10,11 +10,7 @@ class Sketch:
     dense_sketch_fns: Set[str] = {"uniform_dense", "normal", "hadamard"}
     sparse_sketch_fns: Set[str] = {"uniform_sparse", "clarkson_woodruff", "sparse_sign"}
 
-    def __init__(
-        self,
-        sketch_fn: str,
-        seed: Optional[int] = 42,
-    ) -> None:
+    def __init__(self, sketch_fn: str, seed: Optional[int] = 42) -> None:
         """Sketch class.
 
         Parameters

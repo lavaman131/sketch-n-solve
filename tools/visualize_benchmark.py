@@ -33,6 +33,7 @@ def main() -> None:
     rows = defaultdict(list)
     residual_errors = defaultdict(list)
     forward_errors = defaultdict(list)
+    backward_errors = defaultdict(list)
 
     for method in metadata.keys():
         trials = metadata[method]
@@ -42,6 +43,8 @@ def main() -> None:
             rows[method].append(trial["m"])
             residual_errors[method].append(trial["residual_error"])
             forward_errors[method].append(trial["forward_error"])
+            if "backward_error" in trial:
+                backward_errors[method].append(trial["backward_error"])
     ax.plot(
         rows["lstsq"],
         times["lstsq"],
@@ -124,6 +127,35 @@ def main() -> None:
     ax.set_title(r"$n=10^3$")
     plt.savefig(
         visuals_dir.joinpath("benchmark_forward_error.png"),
+        dpi=600,
+        bbox_inches="tight",
+    )
+
+    fig = plt.figure(figsize=(6.5, 5))
+    ax = fig.add_subplot(111)
+    ax.plot(
+        backward_errors["lstsq"][-1],
+        label="LSQR",
+    )
+    ax.plot(
+        backward_errors["sketch_and_precondition"][-1],
+        label="SAP-SAS",
+    )
+    ax.plot(
+        backward_errors["sketch_and_apply"][-1],
+        label="SAA-SAS",
+    )
+    ax.legend(loc="best")
+    # Create a FuncFormatter object with the formatting function
+    formatter = ticker.FuncFormatter(format_func)
+
+    # Set the formatter for the y-axis tick labels
+    ax.yaxis.set_major_formatter(formatter)
+    ax.set_xlabel("Iterations")
+    ax.set_ylabel(r"Backward Error")
+    ax.set_title(r"$n=10^3$")
+    plt.savefig(
+        visuals_dir.joinpath("benchmark_backward_error.png"),
         dpi=600,
         bbox_inches="tight",
     )

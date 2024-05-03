@@ -1,3 +1,4 @@
+from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
@@ -10,8 +11,7 @@ import pickle
 
 def main() -> None:
     seed = 42
-    # warmup with array
-    np.empty(shape=(10000, 10000))
+    _ = np.empty((10000, 10000))
     output_dir = Path("outputs")
     benchmark_dir = output_dir.joinpath("benchmark")
     benchmark_dir.mkdir(exist_ok=True)
@@ -19,8 +19,20 @@ def main() -> None:
     problem_paths = list(precomputed_problems_dir.glob("*.h5"))
     sketch_fn = "sparse_sign"
     lsq = LeastSquares(sketch_fn, seed)
-    metric_callback = LeastSquaresMetricCallback()
-    metadata = metric_callback(problem_paths, lsq)
+    if benchmark_dir.joinpath("metadata.pkl").exists():
+        with open(benchmark_dir.joinpath("metadata.pkl"), "rb") as f:
+            metadata = pickle.load(f)
+    else:
+        metadata = defaultdict(list)
+    metric_callback = LeastSquaresMetricCallback(metadata=metadata)
+    # metadata = metric_callback(method="lstsq", problem_paths=problem_paths, lsq=lsq)
+    # metadata = metric_callback(
+    #     method="sketch_and_precondition", problem_paths=problem_paths, lsq=lsq
+    # )
+    metadata = metric_callback(
+        method="sketch_and_apply", problem_paths=problem_paths, lsq=lsq
+    )
+
     with open(benchmark_dir.joinpath("metadata.pkl"), "wb") as f:
         pickle.dump(metadata, f)
 

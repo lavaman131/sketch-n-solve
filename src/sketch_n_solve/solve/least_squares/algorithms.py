@@ -2,15 +2,11 @@ import time
 from typing import Any, List, Optional, Tuple
 import numpy as np
 import numpy.linalg as LA
+
 from scipy.linalg.lapack import dtrtrs as triangular_solve
 from sketch_n_solve.solve.least_squares.utils import lsqr
 from scipy.sparse.linalg import LinearOperator
-from numba import njit
-
-
-@njit(error_model="numpy", fastmath=True, cache=True, nogil=True)
-def householder_qr(A: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-    return LA.qr(A)
+from scipy.linalg import lstsq
 
 
 def _sketch_and_precondition(
@@ -18,60 +14,28 @@ def _sketch_and_precondition(
     b: np.ndarray,
     S: LinearOperator,
     use_sketch_and_solve_x_0: bool = True,
-    tolerance: float = 1e-6,
+    tolerance: float = 1e-12,
     iter_lim: Optional[int] = 100,
     log_x_hat: bool = False,
     **kwargs: Any,
 ) -> Tuple[np.ndarray, float, List[np.ndarray], int]:
-    """Solves the least squares problem using sketch and preconditioning as described in https://arxiv.org/pdf/2302.07202.pdf.
-
-    Parameters
-    ----------
-    A : LinearOperator
-        The input matrix as a LinearOperator.
-    b : (n, 1) np.ndarray
-        The target vector.
-    S : LinearOperator
-        The sketch matrix as a LinearOperator.
-    use_sketch_and_solve_x_0 : bool, optional
-        Whether to use x_0 from sketch and solve as the initial guess for the least squares solver rather than the zero vector, by default True.
-    tolerance : float, optional
-        Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-6.
-    iter_lim : int, optional
-        Maximum number of iterations for least-squares QR solver, by default 100.
-    log_x_hat : bool, optional
-        Whether to log the intermediate solutions, by default False.
-    **kwargs : Any
-        Additional required arguments depending on the sketch function.
-
-    Returns
-    -------
-    x : (d, 1) np.ndarray
-        The solution to the least squares problem.
-    time_elapsed : float
-        Time taken to solve the least squares problem.
-    x_hats : List[np.ndarray]
-        List of intermediate solutions if log_x_hat is True.
-    """
-    assert b.ndim == 1, "The target vector should be a vector."
-    assert (
-        A.shape[0] == b.shape[0]
-    ), "The number of rows of the input matrix and the target vector should be the same."
+    # ...
     assert (
         iter_lim is None or iter_lim > 0
     ), "Number of iterations should be greater than 0."
+
     start_time = time.perf_counter()
     B = S.matmat(A)
     c = S.matvec(b)
-    Q, R = householder_qr(B)
+    Q, R = LA.qr(B)
+    R_inv = triangular_solve(R, np.eye(R.shape[1]), lower=False)[0]
 
     if use_sketch_and_solve_x_0:
-        x_0 = triangular_solve(R, Q.T @ c, lower=False)[0].squeeze()  # type: ignore
+        x_0 = R_inv @ Q.T @ c
     else:
         x_0 = None
 
-    A_precond = A @ triangular_solve(R, np.eye(R.shape[0]), lower=False)[0]
-
+    A_precond = A @ R_inv
     y, y_hats, istop, *_ = lsqr(
         A=A_precond,
         b=b,
@@ -81,21 +45,44 @@ def _sketch_and_precondition(
         iter_lim=iter_lim,
         log_x_hat=log_x_hat,
     )
-    x = triangular_solve(R, y, lower=False)[0]
+    x = R_inv @ y
     end_time = time.perf_counter()
-
     time_elapsed = end_time - start_time
+
     x_hats = []
     if log_x_hat:
-        x_hats = [triangular_solve(R, y_hat, lower=False)[0] for y_hat in y_hats]
+        x_hats = [R_inv @ y_hat for y_hat in y_hats]
+
     return x, time_elapsed, x_hats, istop
+
+
+def solve(A: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Solves the least squares problem using the normal equation.
+
+    Parameters
+    ----------
+    A : (m, n) np.ndarray
+        The input matrix.
+    b : (n, 1) np.ndarray
+        The target vector.
+
+    Returns
+    -------
+    x : (d, 1) np.ndarray
+        The solution to the least squares problem.
+    """
+    if A.shape[0] == A.shape[1]:
+        x = triangular_solve(A, b, lower=False)[0]
+    else:
+        x = lstsq(A, b)[0]
+    return x
 
 
 def _sketch_and_apply(
     A: np.ndarray,
     b: np.ndarray,
     S: LinearOperator,
-    tolerance: float = 1e-6,
+    tolerance: float = 1e-12,
     iter_lim: Optional[int] = 100,
     log_x_hat: bool = False,
     **kwargs: Any,
@@ -111,7 +98,7 @@ def _sketch_and_apply(
     S : LinearOperator
         The sketch matrix as a LinearOperator.
     tolerance : float, optional
-        Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-6.
+        Error tolerance. Controls the number of iterations if iter_lim is not specified, by default 1e-12.
     iter_lim : int, optional
         Maximum number of iterations for least-squares QR solver, by default 100.
     log_x_hat : bool, optional
@@ -140,7 +127,7 @@ def _sketch_and_apply(
     start_time = time.perf_counter()
     B = S.matmat(A)
     c = S.matvec(b)
-    Q, R = householder_qr(B)
+    Q, R = LA.qr(B)
     z_0 = (Q.T @ c).squeeze()  # type: ignore
     z, z_hats, istop, *_ = lsqr(
         A=Q,  # type: ignore
@@ -151,13 +138,13 @@ def _sketch_and_apply(
         iter_lim=iter_lim,
         log_x_hat=log_x_hat,
     )
-    x = triangular_solve(R, z, lower=False)[0]
+    x = solve(R, z)
     end_time = time.perf_counter()
 
     time_elapsed = end_time - start_time
     x_hats = []
     if log_x_hat:
-        x_hats = [triangular_solve(R, z_hat, lower=False)[0] for z_hat in z_hats]
+        x_hats = [solve(R, z) for z_hat in z_hats]
 
     return x, time_elapsed, x_hats, istop
 
@@ -166,7 +153,7 @@ def _smoothed_sketch_and_apply(
     A: np.ndarray,
     b: np.ndarray,
     S: LinearOperator,
-    tolerance: float = 1e-6,
+    tolerance: float = 1e-12,
     iter_lim: Optional[int] = 100,
     seed: Optional[int] = 42,
     log_x_hat: bool = False,
