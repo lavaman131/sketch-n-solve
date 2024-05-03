@@ -1,6 +1,6 @@
 # Sketch 'n Solve
 
-Sketch 'n Solve is a Python library that implements basic randomized numerical linear algebra (RandNLA) techniques for solving large-scale linear systems of equations. The library is designed to be user-friendly and easy to use, with a focus on simplicity and efficiency. The library is built on top of NumPy and SciPy, and provides a simple interface for solving linear systems using randomized algorithms.
+Sketch 'n Solve is a Python library that implements basic randomized numerical linear algebra (RandNLA) techniques for solving large-scale linear systems of equations. The library is designed to be user-friendly and easy to use, with a focus on simplicity and efficiency. The library is built on top of NumPy and SciPy, and provides a simple interface for creating sketched matrices and solving linear systems using randomized algorithms.
 
 <p align="center">
     <img src="./assets/logo.jpg" style="width: 40%">
@@ -19,27 +19,58 @@ poetry install
 
 ## 🛠️ Usage
 
+### ⚡️ Fast Sparse Sketch Operators
+
 ```python
 import numpy as np
 import numpy.linalg as LA
 from sketch_n_solve.solve.least_squares import LeastSquares
+from sketch_n_solve.solve.least_squares.utils import lsqr
 
-sketch_fn = "sparse_sign"
-seed = 42
-A = np.random.randn(10000, 10)
-x = np.random.randn(10)
+# Recommended to use either "clarkson_woodruff" or "uniform_sparse" sketching functions for best results out of the box
+sketch_fn = "clarkson_woodruff"
+
+rng = np.random.default_rng(seed)
+A = rng.standard_normal((1000000, 1000))
+x = rng.standard_normal(1000)
 b = A @ x
+
+seed = 42
 lsq = LeastSquares(sketch_fn, seed)
 
-print(lsq.sketch_and_apply.__doc__)
+x_hat, time_elapsed, x_hats, istop = lsq.sketch_and_apply(A, b)
 
-x_hat, time_elapsed, x_hats, istop = lsq.sketch_and_apply(A, b, sparsity_parameter=None)
-
-print(x, x_hat)
 print("residual", LA.norm(A @ x_hat - A @ x))
 
 is_close = np.allclose(x_hat, x)
 print(f"x_hat is close to x => {is_close}")
 
 assert is_close, "Something went wrong!"
+
+print(f"Finished in {time_elapsed} seconds.")
 ```
+
+### 🎨 Generate Sketch Matrix
+
+You can also generate the sketch matrix and apply it to the input matrix `A` and the right-hand side `b` separately or for other downstream linear algebra tasks!
+
+```python
+import numpy as np
+from sketch_n_solve.sketch import Sketch
+
+sketch_fn = "normal"
+seed = 42
+sketch = Sketch(sketch_fn, seed)
+
+rng = np.random.default_rng(seed)
+A = rng.standard_normal((10000, 10))
+b = rng.standard_normal(10000)
+
+# Generate sketch matrix S
+A, S = sketch.sketch(A)
+
+# Use sketch matrix S to sketch A and b
+SA = S @ A
+Sb = S @ b
+```
+

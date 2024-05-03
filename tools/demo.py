@@ -1,4 +1,3 @@
-import time
 import numpy as np
 import numpy.linalg as LA
 from sketch_n_solve.solve.least_squares import LeastSquares
@@ -12,13 +11,7 @@ x = rng.standard_normal(1000)
 b = A @ x
 lsq = LeastSquares(sketch_fn, seed)
 
-# print(lsq.sketch_and_apply.__doc__)
-# start_time = time.perf_counter()
-# x_hat, *_ = lsqr(A, b, log_x_hat=False)
-# end_time = time.perf_counter()
-# time_elapsed = end_time - start_time
 x_hat, time_elapsed, x_hats, istop = lsq.sketch_and_apply(A, b)
-
 
 print("residual", LA.norm(A @ x_hat - A @ x))
 

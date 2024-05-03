@@ -6,75 +6,81 @@ from scipy.sparse.linalg import LinearOperator, aslinearoperator
 
 
 def uniform_dense(
-    A: np.ndarray, k: int, seed: Optional[int] = 42, **kwargs: Any
+    A: np.ndarray, k: Optional[int] = None, seed: Optional[int] = 42, **kwargs: Any
 ) -> Tuple[np.ndarray, LinearOperator]:
     """Implements uniform sketch as described in https://arxiv.org/pdf/2302.11474.pdf.
 
     Parameters
     ----------
-    A : (n, d) np.ndarray
+    A : (m, n) np.ndarray
         The input matrix.
-    k : int
-        The number of rows in the sketch matrix.
+    k : int, optional
+        The number of rows in the sketch matrix. If not provided, it is set to number of columns of A.
     seed : int, optional
         Random seed, by default 42.
 
     Returns
     -------
-    A : (n, d) np.ndarray
+    A : (m, n) np.ndarray
         The input matrix.
-    S : (k, n) np.ndarray
+    S : (k, m) np.ndarray
         The sketch matrix.
     """
 
-    n, d = A.shape
+    m, n = A.shape
 
-    assert k < n, "k should be less than the number of rows of the matrix."
-    assert k > 0, "k should be greater than 0."
+    if k:
+        assert k < m, "k should be less than the number of rows of the matrix."
+        assert k > 0, "k should be greater than 0."
+    else:
+        k = n
 
     rng = np.random.default_rng(seed)
 
-    S = rng.uniform(-1, 1, size=(k, n))
+    S = rng.uniform(-1, 1, size=(k, m))
 
     return A, aslinearoperator(S)
 
 
 def normal(
-    A: np.ndarray, k: int, seed: Optional[int] = 42, **kwargs: Any
+    A: np.ndarray, k: Optional[int] = None, seed: Optional[int] = 42, **kwargs: Any
 ) -> Tuple[np.ndarray, LinearOperator]:
     """Implements normal sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
 
     Parameters
     ----------
-    A : (n, d) np.ndarray
+    A : (m, n) np.ndarray
         The input matrix.
-    k : int
-        The number of rows in the sketch matrix.
+    k : int, optional
+        The number of rows in the sketch matrix. If not provided, it is set to number of columns of A.
     seed : int, optional
         Random seed, by default 42.
 
     Returns
     -------
-    A : (n, d) np.ndarray
+    A : (m, n) np.ndarray
         The input matrix.
-    S : (k, n) np.ndarray
+    S : (k, m) np.ndarray
         The sketch matrix.
     """
 
-    n, d = A.shape
+    m, n = A.shape
 
-    assert k < n, "k should be less than the number of rows of the matrix."
-    assert k > 0, "k should be greater than 0."
+    if k:
+        assert k < m, "k should be less than the number of rows of the matrix."
+        assert k > 0, "k should be greater than 0."
+    else:
+        k = n
 
     rng = np.random.default_rng(seed)
 
-    S = rng.normal(loc=0, scale=(1 / k) ** 0.5, size=(k, n))
+    S = rng.normal(loc=0, scale=(1 / k) ** 0.5, size=(k, m))
 
     return A, aslinearoperator(S)
 
 
 def hadamard(
-    A: np.ndarray, k: int, seed: Optional[int] = 42, **kwargs: Any
+    A: np.ndarray, k: int = 500, seed: Optional[int] = 42, **kwargs: Any
 ) -> Tuple[np.ndarray, LinearOperator]:
     r"""Implements Hadamard sketch as described in https://arxiv.org/pdf/2201.00450.pdf.
 
