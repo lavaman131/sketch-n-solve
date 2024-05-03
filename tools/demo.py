@@ -1,7 +1,6 @@
 import numpy as np
 import numpy.linalg as LA
 from sketch_n_solve.solve.least_squares import LeastSquares
-from sketch_n_solve.solve.least_squares.utils import lsqr
 
 sketch_fn = "clarkson_woodruff"
 seed = 42

@@ -25,7 +25,6 @@ poetry install
 import numpy as np
 import numpy.linalg as LA
 from sketch_n_solve.solve.least_squares import LeastSquares
-from sketch_n_solve.solve.least_squares.utils import lsqr
 
 # Recommended to use either "clarkson_woodruff" or "uniform_sparse"
 # for best results out of the box
