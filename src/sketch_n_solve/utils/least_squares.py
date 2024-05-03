@@ -55,7 +55,14 @@ def generate_least_squares_problem(
     r_x = beta * LA.norm(A @ x) * rng.standard_normal(m)
     b = A @ x + r_x
 
-    problem = {"A": A, "b": b, "x": x, "r_x": r_x, "cond": cond, "beta": beta}
+    problem = {
+        "A": A,
+        "b": b.squeeze(),
+        "x": x.squeeze(),
+        "r_x": r_x,
+        "cond": cond,
+        "beta": beta,
+    }
     cond_scientific_notation = f"{cond:.0e}".replace("+", "")
     fname = f"{m}x{n}_{cond_scientific_notation}.h5"
 
@@ -111,7 +118,14 @@ def generate_ortho_least_squares_problem(
     r_x = beta * u2z / LA.norm(u2z)
     b = A @ x + r_x
 
-    problem = {"A": A, "b": b, "x": x, "r_x": r_x, "cond": cond, "beta": beta}
+    problem = {
+        "A": A,
+        "b": b.squeeze(),
+        "x": x.squeeze(),
+        "r_x": r_x,
+        "cond": cond,
+        "beta": beta,
+    }
     cond_scientific_notation = f"{cond:.0e}".replace("+", "")
     fname = f"{m}x{n}_{cond_scientific_notation}.h5"
     with h5py.File(save_dir.joinpath(fname), "w") as f:

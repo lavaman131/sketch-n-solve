@@ -20,7 +20,7 @@ def _sketch_and_precondition(
     log_x_hat: bool = False,
     **kwargs: Any,
 ) -> Tuple[np.ndarray, float, List[np.ndarray], int]:
-    # ...
+    """Solves the least squares problem using sketch-and-precondition as described in https://arxiv.org/pdf/2302.07202.pdf."""
     assert (
         iter_lim is None or iter_lim > 0
     ), "Number of iterations should be greater than 0."
@@ -82,12 +82,12 @@ def solve(A: np.ndarray, b: np.ndarray) -> np.ndarray:
     ----------
     A : (m, n) np.ndarray
         The input matrix.
-    b : (n, 1) np.ndarray
+    b : (m,) np.ndarray
         The target vector.
 
     Returns
     -------
-    x : (d, 1) np.ndarray
+    x : (n,) np.ndarray
         The solution to the least squares problem.
     """
     if A.shape[0] == A.shape[1]:
@@ -110,9 +110,9 @@ def _sketch_and_apply(
 
     Parameters
     ----------
-    A : LinearOperator
+    A : (m, n) LinearOperator
         The input matrix as a LinearOperator.
-    b : (n, 1) np.ndarray
+    b : (m,) np.ndarray
         The target vector.
     S : LinearOperator
         The sketch matrix as a LinearOperator.
@@ -127,7 +127,7 @@ def _sketch_and_apply(
 
     Returns
     -------
-    x : (d, 1) np.ndarray
+    x : (n,) np.ndarray
         The solution to the least squares problem.
     time_elapsed : float
         Time taken to solve the least squares problem.
@@ -182,9 +182,9 @@ def _smoothed_sketch_and_apply(
 
     Parameters
     ----------
-    A : LinearOperator
+    A : (m, n) LinearOperator
         The input matrix as a LinearOperator.
-    b : (n, 1) np.ndarray
+    b : (m,) np.ndarray
         The target vector.
     S : LinearOperator
         The sketch matrix as a LinearOperator.
@@ -201,7 +201,7 @@ def _smoothed_sketch_and_apply(
 
     Returns
     -------
-    x : (d, 1) np.ndarray
+    x : (n,) np.ndarray
         The solution to the least squares problem.
     time_elapsed : float
         Time taken to solve the least squares problem.

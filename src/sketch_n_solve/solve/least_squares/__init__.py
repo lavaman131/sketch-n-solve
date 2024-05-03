@@ -33,9 +33,9 @@ class LeastSquares(Solver):
 
     #     Parameters
     #     ----------
-    #     A : (n, d) np.ndarray
+    #     A : (m, n) np.ndarray
     #         The input matrix.
-    #     b : (n, 1) np.ndarray
+    #     b : (m,) np.ndarray
     #         The target vector.
     #     use_sketch_and_solve_x_0 : bool, optional
     #         Whether to use x_0 from sketch and solve as the initial guess for the least squares solver rather than the zero vector, by default True.
@@ -50,7 +50,7 @@ class LeastSquares(Solver):
 
     #     Returns
     #     -------
-    #     x : (d, 1) np.ndarray
+    #     x : (n,) np.ndarray
     #         The solution to the least squares problem.
     #     time_elapsed : float
     #         Time taken to solve the least squares problem.
@@ -78,7 +78,7 @@ class LeastSquares(Solver):
         ----------
         A : (m, n) np.ndarray
             The input matrix.
-        b : (m, 1) np.ndarray
+        b : (m,) np.ndarray
             The target vector.
         tolerance : float
             Error tolerance. Controls the number of iterations if iter_lim is not specified.
@@ -89,7 +89,7 @@ class LeastSquares(Solver):
 
         Returns
         -------
-        x : (n, 1) np.ndarray
+        x : (n,) np.ndarray
             The solution to the least squares problem.
         time_elapsed : float
             Time taken to solve the least squares problem.
@@ -113,7 +113,7 @@ class LeastSquares(Solver):
         ----------
         A : (m, n) np.ndarray
             The input matrix.
-        b : (m, 1) np.ndarray
+        b : (m,) np.ndarray
             The target vector.
         tolerance : float
             Error tolerance. Controls the number of iterations if iter_lim is not specified.
@@ -124,7 +124,7 @@ class LeastSquares(Solver):
 
         Returns
         -------
-        x : (n, 1) np.ndarray
+        x : (n,) np.ndarray
             The solution to the least squares problem.
         time_elapsed : float
             Time taken to solve the least squares problem.
