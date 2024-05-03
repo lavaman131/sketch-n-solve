@@ -35,7 +35,10 @@ def main() -> None:
         calculate_backward_error=True,
     )
     metadata = metric_callback(
-        method="sketch_and_apply", problem_paths=problem_paths, lsq=lsq
+        method="sketch_and_apply",
+        problem_paths=problem_paths,
+        lsq=lsq,
+        calculate_backward_error=True,
     )
     # metadata = metric_callback(
     #     method="sketch_and_precondition", problem_paths=problem_paths, lsq=lsq

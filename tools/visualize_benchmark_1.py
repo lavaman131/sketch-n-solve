@@ -36,58 +36,69 @@ def main() -> None:
             if "backward_error" in trial:
                 backward_errors[method].append(trial["backward_error"])
 
-    axs[0].scatter(
+    axs[0].plot(
         np.arange(len(residual_errors["lstsq"][-1])),
         residual_errors["lstsq"][-1],
+        marker="o",
+        markersize=7.5,
         label="LSQR",
     )
-    # axs[0].scatter(
+    # axs[0].plot(
     #     np.arange(len(residual_errors["sketch_and_precondition"][-1])),
     #     residual_errors["sketch_and_precondition"][-1],
     #     label="SAP-SAS",
     # )
-    axs[0].scatter(
+    axs[0].plot(
         np.arange(len(residual_errors["sketch_and_apply"][-1])),
         residual_errors["sketch_and_apply"][-1],
+        marker="^",
+        markersize=7.5,
         label="SAA-SAS",
     )
     # axs[0].legend(loc="best")
     axs[0].set_ylabel(r"Residual Error $\frac{\|Ax - b\|_2}{\|b\|_2}$")
     axs[0].set_xlabel("Iterations")
 
-    axs[1].scatter(
+    axs[1].plot(
         np.arange(len(forward_errors["lstsq"][-1])),
         forward_errors["lstsq"][-1],
+        marker="o",
+        markersize=7.5,
         # label="LSQR",
     )
-    # axs[1].scatter(
+    # axs[1].plot(
     #     np.arange(len(forward_errors["sketch_and_precondition"][-1])),
     #     forward_errors["sketch_and_precondition"][-1],
     #     # label="SAP-SAS",
     # )
-    print(forward_errors["sketch_and_apply"][-1])
-    axs[1].scatter(
+    axs[1].plot(
         np.arange(len(forward_errors["sketch_and_apply"][-1])),
         forward_errors["sketch_and_apply"][-1],
+        marker="^",
+        markersize=7.5,
         # label="SAA-SAS",
     )
     # axs[1].legend(loc="best")
     axs[1].set_ylabel(r"Forward Error $\frac{\|x - \hat{x}\|_2}{\|x\|_2}$")
     axs[1].set_xlabel("Iterations")
 
-    axs[2].scatter(
+    axs[2].plot(
         np.arange(len(backward_errors["lstsq"][-1])),
         backward_errors["lstsq"][-1],
+        marker="o",
+        markersize=7.5,
         # label="LSQR",
     )
-    # axs[2].scatter(
+    # axs[2].plot(
     #     np.arange(len(backward_errors["sketch_and_precondition"][-1])),
     #     backward_errors["sketch_and_precondition"][-1],
     #     # label="SAP-SAS",
     # )
-    axs[2].scatter(
+    axs[2].plot(
         np.arange(len(backward_errors["sketch_and_apply"][-1])),
         backward_errors["sketch_and_apply"][-1],
+        marker="^",
+        markersize=7.5,
         # label="SAA-SAS",
     )
     # axs[2].legend(loc="best")
