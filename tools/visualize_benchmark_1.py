@@ -42,11 +42,11 @@ def main() -> None:
         residual_errors["lstsq"][-1],
         label="LSQR",
     )
-    axs[0].scatter(
-        np.arange(len(residual_errors["sketch_and_precondition"][-1])),
-        residual_errors["sketch_and_precondition"][-1],
-        label="SAP-SAS",
-    )
+    # axs[0].scatter(
+    #     np.arange(len(residual_errors["sketch_and_precondition"][-1])),
+    #     residual_errors["sketch_and_precondition"][-1],
+    #     label="SAP-SAS",
+    # )
     axs[0].scatter(
         np.arange(len(residual_errors["sketch_and_apply"][-1])),
         residual_errors["sketch_and_apply"][-1],
@@ -61,11 +61,11 @@ def main() -> None:
         forward_errors["lstsq"][-1],
         # label="LSQR",
     )
-    axs[1].scatter(
-        np.arange(len(forward_errors["sketch_and_precondition"][-1])),
-        forward_errors["sketch_and_precondition"][-1],
-        # label="SAP-SAS",
-    )
+    # axs[1].scatter(
+    #     np.arange(len(forward_errors["sketch_and_precondition"][-1])),
+    #     forward_errors["sketch_and_precondition"][-1],
+    #     # label="SAP-SAS",
+    # )
     print(forward_errors["sketch_and_apply"][-1])
     axs[1].scatter(
         np.arange(len(forward_errors["sketch_and_apply"][-1])),
@@ -81,11 +81,11 @@ def main() -> None:
         backward_errors["lstsq"][-1],
         # label="LSQR",
     )
-    axs[2].scatter(
-        np.arange(len(backward_errors["sketch_and_precondition"][-1])),
-        backward_errors["sketch_and_precondition"][-1],
-        # label="SAP-SAS",
-    )
+    # axs[2].scatter(
+    #     np.arange(len(backward_errors["sketch_and_precondition"][-1])),
+    #     backward_errors["sketch_and_precondition"][-1],
+    #     # label="SAP-SAS",
+    # )
     axs[2].scatter(
         np.arange(len(backward_errors["sketch_and_apply"][-1])),
         backward_errors["sketch_and_apply"][-1],

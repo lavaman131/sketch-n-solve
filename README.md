@@ -29,16 +29,14 @@ from sketch_n_solve.solve.least_squares import LeastSquares
 # Recommended to use either "clarkson_woodruff" or "uniform_sparse"
 # for best results out of the box
 sketch_fn = "clarkson_woodruff"
-
+seed = 42
 rng = np.random.default_rng(seed)
 A = rng.standard_normal((1000000, 1000))
 x = rng.standard_normal(1000)
 b = A @ x
-
-seed = 42
 lsq = LeastSquares(sketch_fn, seed)
 
-x_hat, time_elapsed, x_hats, istop = lsq.sketch_and_apply(A, b)
+x_hat, time_elapsed, x_hats, istop = lsq(A, b)
 
 print("residual", LA.norm(A @ x_hat - A @ x))
 
@@ -47,7 +45,8 @@ print(f"x_hat is close to x => {is_close}")
 
 assert is_close, "Something went wrong!"
 
-print(f"Finished in {time_elapsed} seconds.")
+print(f"Least-squares solving finished in {time_elapsed} seconds.")
+
 ```
 
 ### 🎨 Generate Sketch Matrix
@@ -67,10 +66,12 @@ A = rng.standard_normal((10000, 10))
 b = rng.standard_normal(10000)
 
 # Generate sketch matrix S
-A, S = sketch.sketch(A)
+A, S = sketch(A)
 
 # Use sketch matrix S to sketch A and b
 SA = S @ A
 Sb = S @ b
+
+print(SA.shape, Sb.shape)  # SA: (10, 10), Sb: (10,)
 ```
 

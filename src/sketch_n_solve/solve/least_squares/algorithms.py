@@ -6,7 +6,8 @@ import numpy.linalg as LA
 from scipy.linalg.lapack import dtrtrs as triangular_solve
 from sketch_n_solve.solve.least_squares.utils import lsqr
 from scipy.sparse.linalg import LinearOperator, aslinearoperator
-from scipy.linalg import lstsq
+from scipy.linalg import lstsq, qr
+import warnings
 
 
 def _sketch_and_precondition(
@@ -23,23 +24,37 @@ def _sketch_and_precondition(
     assert (
         iter_lim is None or iter_lim > 0
     ), "Number of iterations should be greater than 0."
-
+    warnings.warn(
+        "This function is not numerically stable. Use sketch_and_apply instead."
+    )
     start_time = time.perf_counter()
     B = S.matmat(A)
     c = S.matvec(b)
-    Q, R = LA.qr(B)
-
-    Q_tranpose = aslinearoperator(Q.transpose())
-
-    R_inv = aslinearoperator(triangular_solve(R, np.eye(R.shape[1]), lower=False)[0])
+    Q, R = qr(B, mode="economic", check_finite=False, pivoting=False)
 
     if use_sketch_and_solve_x_0:
-        x_0 = R_inv.matvec(Q_tranpose.matvec(c))
+        Q = aslinearoperator(Q)
+        x_0 = solve(R, Q.T.dot(c))
     else:
         x_0 = None
 
+    R_inv = aslinearoperator(triangular_solve(R, np.eye(R.shape[0]), lower=False)[0])
+
+    A_op = aslinearoperator(A)
+    Afun = lambda y: A_op.matvec(R_inv.matvec(y))
+    ATfun = lambda y: R_inv.rmatvec(A_op.rmatvec(y))
+
+    linear_op = LinearOperator(
+        shape=A_op.shape,
+        matvec=Afun,
+        rmatvec=ATfun,
+        matmat=lambda X: A_op.matmat(R_inv.matmat(X)),
+        rmatmat=lambda X: R_inv.rmatmat(A_op.rmatmat(X)),
+        dtype=A_op.dtype,
+    )
+
     y, y_hats, istop, *_ = lsqr(
-        A=A @ R_inv,
+        A=linear_op,
         b=b,
         x0=x_0,
         atol=tolerance,
@@ -47,6 +62,7 @@ def _sketch_and_precondition(
         iter_lim=iter_lim,
         log_x_hat=log_x_hat,
     )
+
     x = R_inv.matvec(y)
 
     end_time = time.perf_counter()
@@ -130,7 +146,7 @@ def _sketch_and_apply(
     start_time = time.perf_counter()
     B = S.matmat(A)
     c = S.matvec(b)
-    Q, R = LA.qr(B)
+    Q, R = qr(B, mode="economic", check_finite=False, pivoting=False)
     z_0 = (Q.T @ c).squeeze()  # type: ignore
     z, z_hats, istop, *_ = lsqr(
         A=Q,  # type: ignore

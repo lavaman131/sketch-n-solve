@@ -52,13 +52,13 @@ def main() -> None:
         markersize=7.5,
         label="LSQR",
     )
-    ax.plot(
-        rows["sketch_and_precondition"],
-        times["sketch_and_precondition"],
-        marker="o",
-        markersize=7.5,
-        label="SAP-SAS",
-    )
+    # ax.plot(
+    #     rows["sketch_and_precondition"],
+    #     times["sketch_and_precondition"],
+    #     marker="o",
+    #     markersize=7.5,
+    #     label="SAP-SAS",
+    # )
     ax.plot(
         rows["sketch_and_apply"],
         times["sketch_and_apply"],
@@ -82,10 +82,10 @@ def main() -> None:
         residual_errors["lstsq"][-1],
         label="LSQR",
     )
-    ax.plot(
-        residual_errors["sketch_and_precondition"][-1],
-        label="SAP-SAS",
-    )
+    # ax.plot(
+    #     residual_errors["sketch_and_precondition"][-1],
+    #     label="SAP-SAS",
+    # )
     ax.plot(
         residual_errors["sketch_and_apply"][-1],
         label="SAA-SAS",
@@ -108,10 +108,10 @@ def main() -> None:
         forward_errors["lstsq"][-1],
         label="LSQR",
     )
-    ax.plot(
-        forward_errors["sketch_and_precondition"][-1],
-        label="SAP-SAS",
-    )
+    # ax.plot(
+    #     forward_errors["sketch_and_precondition"][-1],
+    #     label="SAP-SAS",
+    # )
     ax.plot(
         forward_errors["sketch_and_apply"][-1],
         label="SAA-SAS",
@@ -138,10 +138,10 @@ def main() -> None:
             backward_errors["lstsq"][-1],
             label="LSQR",
         )
-        ax.plot(
-            backward_errors["sketch_and_precondition"][-1],
-            label="SAP-SAS",
-        )
+        # ax.plot(
+        #     backward_errors["sketch_and_precondition"][-1],
+        #     label="SAP-SAS",
+        # )
         ax.plot(
             backward_errors["sketch_and_apply"][-1],
             label="SAA-SAS",
