@@ -27,7 +27,8 @@ import numpy.linalg as LA
 from sketch_n_solve.solve.least_squares import LeastSquares
 from sketch_n_solve.solve.least_squares.utils import lsqr
 
-# Recommended to use either "clarkson_woodruff" or "uniform_sparse" sketching functions for best results out of the box
+# Recommended to use either "clarkson_woodruff" or "uniform_sparse"
+# for best results out of the box
 sketch_fn = "clarkson_woodruff"
 
 rng = np.random.default_rng(seed)
