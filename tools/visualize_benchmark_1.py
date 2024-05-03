@@ -1,7 +1,6 @@
 from collections import defaultdict
 from pathlib import Path
 import pickle
-from matplotlib import ticker
 import matplotlib.pyplot as plt
 import numpy as np
 import scienceplots
