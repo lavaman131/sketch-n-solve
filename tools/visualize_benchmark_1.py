@@ -56,7 +56,7 @@ def main() -> None:
         label="SAA-SAS",
     )
     # axs[0].legend(loc="best")
-    axs[0].set_ylabel(r"Residual Error $\frac{\|Ax - b\|_2}{\|b\|_2}$")
+    axs[0].set_ylabel(r"Residual Error $\frac{\|A\hat{x} - b\|_2}{\|b\|_2}$")
     axs[0].set_xlabel("Iterations")
 
     axs[1].plot(
