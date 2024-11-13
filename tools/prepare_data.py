@@ -13,11 +13,11 @@ def main() -> None:
     output_dir = Path("outputs")
     output_dir.mkdir(exist_ok=True)
     default_kwargs = {"cond": 1e10, "beta": 1e-10}
-    dims = [(20000, 100)]
+    dims = [(100000, 1000)]
     config = [{**default_kwargs, "m": m, "n": n} for m, n in dims]
     for kwarg in tqdm(config):
         lsq = LeastSquaresProblemConfig(**kwarg)
-        generate_ortho_least_squares_problem(
+        generate_least_squares_problem(
             lsq.m,
             lsq.n,
             lsq.cond,

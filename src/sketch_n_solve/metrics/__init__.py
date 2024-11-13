@@ -12,9 +12,8 @@ from typing import TypedDict
 import numpy.linalg as LA
 from sketch_n_solve.solve.least_squares import LeastSquares
 from tqdm import tqdm
-import h5py
+
 from sketch_n_solve.solve.least_squares.utils import lsqr
-from scipy.sparse import csc_array
 
 
 class LeastSquaresMetaData(TypedDict):
@@ -37,7 +36,7 @@ class LeastSquaresMetricCallback:
         b: np.ndarray,
         x: np.ndarray,
         x_hats: List[np.ndarray],
-        calculate_backward_error: bool = False,
+        calculate_backward_error: bool,
     ) -> Dict[str, List[float]]:
         assert x_hats, "No computed solutions."
         metrics = defaultdict(list)
@@ -56,76 +55,79 @@ class LeastSquaresMetricCallback:
         calculate_backward_error: bool = False,
     ) -> List[LeastSquaresMetaData]:
         for problem_path in tqdm(problem_paths):
-            with h5py.File(problem_path, "r") as f:
-                problem = {key: np.array(f[key]) for key in f.keys()}
-                A, b, x, r_x, cond, beta = (
-                    problem["A"],
-                    problem["b"],
-                    problem["x"],
-                    problem["r_x"],
-                    problem["cond"],
-                    problem["beta"],
+            problem = dict(np.load(problem_path))
+            A, b, x, r_x, cond, beta = (
+                problem["A"],
+                problem["b"],
+                problem["x"],
+                problem["r_x"],
+                problem["cond"],
+                problem["beta"],
+            )
+            x = x.squeeze()
+            b = b.squeeze()
+            default_metadata = {
+                "norm_r": LA.norm(r_x),
+                "cond": cond,
+                "beta": beta,
+                "m": A.shape[0],
+                "n": A.shape[1],
+            }
+
+            if method == "sketch_and_apply":
+                x, time_elapsed, x_hats, _ = lsq.sketch_and_apply(
+                    A, b, sparsity_parameter=None, log_x_hat=True
                 )
-                x = x.squeeze()
-                b = b.squeeze()
-                default_metadata = {
-                    "norm_r": LA.norm(r_x),
-                    "cond": cond,
-                    "beta": beta,
-                    "m": A.shape[0],
-                    "n": A.shape[1],
-                }
 
-                if method == "sketch_and_apply":
-                    x, time_elapsed, x_hats, _ = lsq.sketch_and_apply(
-                        A, b, sparsity_parameter=None, log_x_hat=True
-                    )
-
-                    self.metadata["sketch_and_apply"].append(
-                        {
-                            "time_elapsed": time_elapsed,
-                            **default_metadata,
-                            **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
-                                A,
-                                b,
-                                x,
-                                x_hats,
-                                calculate_backward_error=calculate_backward_error,
-                            ),
-                        }
-                    )
-                # elif method == "sketch_and_precondition":
-                #     x, time_elapsed, x_hats, _ = lsq.sketch_and_precondition(
-                #         A, b, log_x_hat=True
-                #     )
-                #     self.metadata["sketch_and_precondition"].append(
-                #         {
-                #             "time_elapsed": time_elapsed,
-                #             **default_metadata,
-                #             **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
-                #                 A, b, x, x_hats, calculate_backward_error=calculate_backward_error
-                #             ),
-                #         }
-                #     )
-                elif method == "lstsq":
-                    start_time = time.perf_counter()
-                    x, x_hats, *_ = lsqr(A, b, log_x_hat=True, iter_lim=100)
-                    end_time = time.perf_counter()
-                    time_elapsed = end_time - start_time
-                    self.metadata["lstsq"].append(
-                        {
-                            "time_elapsed": time_elapsed,
-                            **default_metadata,
-                            **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
-                                A,
-                                b,
-                                x,
-                                x_hats,
-                                calculate_backward_error=calculate_backward_error,
-                            ),
-                        }
-                    )
-                else:
-                    raise NotImplementedError(f"Unknown method: {method}")
+                self.metadata["sketch_and_apply"].append(
+                    {
+                        "time_elapsed": time_elapsed,
+                        **default_metadata,
+                        **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
+                            A,
+                            b,
+                            x,
+                            x_hats,
+                            calculate_backward_error=calculate_backward_error,
+                        ),
+                    }
+                )
+            elif method == "sketch_and_precondition":
+                x, time_elapsed, x_hats, _ = lsq.sketch_and_precondition(
+                    A, b, log_x_hat=True
+                )
+                self.metadata["sketch_and_precondition"].append(
+                    {
+                        "time_elapsed": time_elapsed,
+                        **default_metadata,
+                        **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
+                            A,
+                            b,
+                            x,
+                            x_hats,
+                            calculate_backward_error=calculate_backward_error,
+                        ),
+                    }
+                )
+            elif method == "lstsq":
+                start_time = time.perf_counter()
+                x, x_hats, *_ = lsqr(A, b, log_x_hat=True, iter_lim=100)
+                end_time = time.perf_counter()
+                time_elapsed = end_time - start_time
+                self.metadata["lstsq"].append(
+                    {
+                        "time_elapsed": time_elapsed,
+                        **default_metadata,
+                        **LeastSquaresMetricCallback.calculate_least_squares_error_metrics_batch(
+                            A,
+                            b,
+                            x,
+                            x_hats,
+                            calculate_backward_error=calculate_backward_error,
+                        ),
+                    }
+                )
+            else:
+                raise NotImplementedError(f"Unknown method: {method}")
 
         return self.metadata  # type: ignore

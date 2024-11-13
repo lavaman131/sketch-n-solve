@@ -4,10 +4,10 @@ import numpy as np
 import numpy.linalg as LA
 
 from scipy.linalg.lapack import dtrtrs as triangular_solve
+from scipy.linalg.lapack import dtrtri as inv_triangular
 from sketch_n_solve.solve.least_squares.utils import lsqr
 from scipy.sparse.linalg import LinearOperator, aslinearoperator
 from scipy.linalg import lstsq, qr
-import warnings
 
 
 def _sketch_and_precondition(
@@ -24,53 +24,51 @@ def _sketch_and_precondition(
     assert (
         iter_lim is None or iter_lim > 0
     ), "Number of iterations should be greater than 0."
-    warnings.warn(
-        "This function is not numerically stable. Use sketch_and_apply instead."
-    )
+
     start_time = time.perf_counter()
+
+    # Step 1: S is already drawn (passed as parameter)
+
+    # Step 2: Compute B = SA and c = Sb
     B = S.matmat(A)
     c = S.matvec(b)
+
+    # Step 3: Compute QR factorization of B
     Q, R = qr(B, mode="economic", check_finite=False, pivoting=False)
 
+    R_inv, _ = inv_triangular(R, lower=0)
+
+    # Step 4: Compute initial guess x_0 = R^(-1)Q^T c
     if use_sketch_and_solve_x_0:
-        Q = aslinearoperator(Q)
-        x_0 = solve(R, Q.T.dot(c))
+        x_0 = R_inv @ (Q.T @ c)
     else:
         x_0 = None
 
-    R_inv = aslinearoperator(triangular_solve(R, np.eye(R.shape[0]), lower=False)[0])
+    def matvec(y):
+        return A @ (R_inv @ y)
 
-    A_op = aslinearoperator(A)
-    Afun = lambda y: A_op.matvec(R_inv.matvec(y))
-    ATfun = lambda y: R_inv.rmatvec(A_op.rmatvec(y))
+    def rmatvec(y):
+        return R_inv.T @ (A.T @ y)
 
     linear_op = LinearOperator(
-        shape=A_op.shape,
-        matvec=Afun,
-        rmatvec=ATfun,
-        matmat=lambda X: A_op.matmat(R_inv.matmat(X)),
-        rmatmat=lambda X: R_inv.rmatmat(A_op.rmatmat(X)),
-        dtype=A_op.dtype,
+        shape=A.shape,
+        matvec=matvec,
+        rmatvec=rmatvec,
+        dtype=A.dtype,
     )
 
-    y, y_hats, istop, *_ = lsqr(
+    x, x_hats, istop, *_ = lsqr(
         A=linear_op,
         b=b,
         x0=x_0,
         atol=tolerance,
         btol=tolerance,
-        iter_lim=iter_lim,
+        iter_lim=0,
         log_x_hat=log_x_hat,
     )
 
-    x = R_inv.matvec(y)
-
     end_time = time.perf_counter()
     time_elapsed = end_time - start_time
-
-    x_hats = []
-    if log_x_hat:
-        x_hats = [R_inv.matvec(y_hat) for y_hat in y_hats]
 
     return x, time_elapsed, x_hats, istop
 

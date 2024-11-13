@@ -3,12 +3,12 @@ import numpy as np
 import numpy.linalg as LA
 from typing import List, Optional, Tuple
 from scipy.sparse.linalg import aslinearoperator
-
+from scipy.sparse.linalg import LinearOperator
 
 eps = np.finfo(np.float64).eps
 
 
-def _sym_ortho(a, b):
+def _sym_ortho(a: float, b: float) -> Tuple[float, float, float]:
     """
     Stable implementation of Givens rotation.
 
@@ -44,17 +44,29 @@ def _sym_ortho(a, b):
 
 
 def lsqr(
-    A,
-    b,
-    damp=0.0,
-    atol=1e-12,
-    btol=1e-12,
-    conlim=1e8,
-    log_x_hat=False,
-    iter_lim=None,
-    calc_var=False,
-    x0=None,
-):
+    A: LinearOperator,
+    b: np.ndarray,
+    damp: float = 0.0,
+    atol: float = 1e-6,
+    btol: float = 1e-6,
+    conlim: float = 1e8,
+    log_x_hat: bool = False,
+    iter_lim: Optional[int] = None,
+    calc_var: bool = False,
+    x0: Optional[np.ndarray] = None,
+) -> Tuple[
+    np.ndarray,
+    List[np.ndarray],
+    int,
+    int,
+    float,
+    float,
+    float,
+    float,
+    float,
+    float,
+    np.ndarray,
+]:
     """Find the least-squares solution to a large, sparse, linear system
     of equations.
 
@@ -304,6 +316,8 @@ def lsqr(
     z = 0
     cs2 = -1
     sn2 = 0
+    arnorm = 0
+    x_hats = []
 
     # Set up the first vectors u and v for the bidiagonalization.
     # These satisfy  beta*u = b - A@x,  alfa*v = A'@u.
@@ -336,9 +350,13 @@ def lsqr(
     r1norm = rnorm
     r2norm = rnorm
 
-    x_hats = []
     if log_x_hat:
         x_hats.append(x.copy())
+
+    # Add initial residual check here
+    initial_residual = LA.norm(b - A.matvec(x))
+    if initial_residual < btol * bnorm:  # Check if initial residual is small enough
+        return x, x_hats, 1, 0, r1norm, r2norm, anorm, acond, arnorm, xnorm, var
 
     # Reverse the order here from the original matlab code because
     # there was an error on return when arnorm==0

@@ -4,7 +4,6 @@ from typing import Optional, Union
 import numpy as np
 import numpy.linalg as LA
 from scipy.stats import ortho_group
-import h5py
 
 
 @dataclass
@@ -36,24 +35,24 @@ def generate_least_squares_problem(
     rng = np.random.default_rng(seed)
     k = min(m, n)
 
-    # Generate singular values
+    # Generate singular values more efficiently
     singular_values = np.logspace(0, -np.log10(cond), k)
 
-    # Generate random orthogonal matrices U_small and V_small
-    U_small, _ = LA.qr(np.random.randn(m, k))
-    V_small, _ = LA.qr(np.random.randn(n, k))
+    # Use rng directly instead of np.random for consistency
+    # Use more efficient matrix generation
+    U_small = rng.standard_normal((m, k))
+    V_small = rng.standard_normal((n, k))
+    U_small, _ = LA.qr(U_small)
+    V_small, _ = LA.qr(V_small)
 
-    # Construct the diagonal matrix Sigma with the singular values
-    Sigma = np.zeros((k, k))
-    np.fill_diagonal(Sigma, singular_values)
+    # Compute A more efficiently using einsum
+    A = np.einsum("ik,k,jk->ij", U_small, singular_values, V_small)
 
-    # Compute the matrix A
-    A = U_small @ Sigma @ V_small.T
-
-    # Generate noise and true solution
+    # Generate noise and solution more efficiently
     x = rng.standard_normal(n)
-    r_x = beta * LA.norm(A @ x) * rng.standard_normal(m)
-    b = A @ x + r_x
+    Ax = A @ x
+    r_x = beta * LA.norm(Ax) * rng.standard_normal(m)
+    b = Ax + r_x
 
     problem = {
         "A": A,
@@ -64,11 +63,10 @@ def generate_least_squares_problem(
         "beta": beta,
     }
     cond_scientific_notation = f"{cond:.0e}".replace("+", "")
-    fname = f"{m}x{n}_{cond_scientific_notation}.h5"
+    fname = f"{m}x{n}_{cond_scientific_notation}.npz"
 
-    with h5py.File(save_dir.joinpath(fname), "w") as f:
-        for key, value in problem.items():
-            f.create_dataset(key, data=value)
+    # Replace h5py with numpy save
+    np.savez(save_dir.joinpath(fname), **problem)
 
 
 def generate_ortho_least_squares_problem(
@@ -103,16 +101,26 @@ def generate_ortho_least_squares_problem(
     save_dir = Path(save_dir) if isinstance(save_dir, str) else save_dir
     save_dir.mkdir(exist_ok=True, parents=True)
     m, n = max(m, n), min(m, n)
-    U = ortho_group.rvs(m, random_state=seed)
+    rng = np.random.default_rng(seed)
+
+    # Generate orthogonal matrices more efficiently using QR
+    U = rng.standard_normal((m, m))
+    U, _ = LA.qr(U)
+    V = rng.standard_normal((n, n))
+    V, _ = LA.qr(V)
+
     U_1 = U[:, :n]
     U_2 = U[:, n:]
-    V = ortho_group.rvs(n, random_state=seed)
-    Sigma = np.diag(np.logspace(1, 1 / cond, n))
-    A = U_1 @ Sigma @ V.T
 
-    rng = np.random.default_rng(seed)
-    w = rng.standard_normal((n, 1))
-    z = rng.standard_normal((m - n, 1))
+    # Generate Sigma more efficiently
+    Sigma = np.diag(np.logspace(1, 1 / cond, n))
+
+    # Compute A more efficiently using einsum
+    A = np.einsum("ik,kj,jl->il", U_1, Sigma, V.T)
+
+    # Generate x and noise more efficiently
+    w = rng.standard_normal(n)
+    z = rng.standard_normal(m - n)
     x = w / LA.norm(w)
     u2z = U_2 @ z
     r_x = beta * u2z / LA.norm(u2z)
@@ -127,7 +135,7 @@ def generate_ortho_least_squares_problem(
         "beta": beta,
     }
     cond_scientific_notation = f"{cond:.0e}".replace("+", "")
-    fname = f"{m}x{n}_{cond_scientific_notation}.h5"
-    with h5py.File(save_dir.joinpath(fname), "w") as f:
-        for key, value in problem.items():
-            f.create_dataset(key, data=value)
+    fname = f"{m}x{n}_{cond_scientific_notation}.npz"
+
+    # Replace h5py with numpy save
+    np.savez(save_dir.joinpath(fname), **problem)

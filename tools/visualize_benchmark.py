@@ -4,7 +4,7 @@ import pickle
 from matplotlib import ticker
 import matplotlib.pyplot as plt
 import numpy as np
-import scienceplots
+import scienceplots  # noqa: F401
 
 plt.style.use(["science", "seaborn-v0_8-talk"])
 
@@ -23,11 +23,11 @@ def main() -> None:
     visuals_dir = output_dir.joinpath("visuals")
     visuals_dir.mkdir(exist_ok=True)
     benchmark_dir = output_dir.joinpath("benchmark")
+    kappa = "10^{10}"
+    beta = "10^{-10}"
+    n = "10^3"
     with open(benchmark_dir.joinpath("metadata.pkl"), "rb") as f:
         metadata = pickle.load(f)
-
-    fig = plt.figure(figsize=(6.5, 5))
-    ax = fig.add_subplot(111)
 
     times = defaultdict(list)
     rows = defaultdict(list)
@@ -45,32 +45,39 @@ def main() -> None:
             forward_errors[method].append(trial["forward_error"])
             if "backward_error" in trial:
                 backward_errors[method].append(trial["backward_error"])
+
+    fig = plt.figure(figsize=(6.5, 5))
+    ax = fig.add_subplot(111)
+
     ax.plot(
         rows["lstsq"],
         times["lstsq"],
         marker="o",
         markersize=7.5,
         label="LSQR",
+        linewidth=2,
     )
-    # ax.plot(
-    #     rows["sketch_and_precondition"],
-    #     times["sketch_and_precondition"],
-    #     marker="o",
-    #     markersize=7.5,
-    #     label="SAP-SAS",
-    # )
+    ax.plot(
+        rows["sketch_and_precondition"],
+        times["sketch_and_precondition"],
+        marker="s",  # square marker
+        markersize=7.5,
+        label="SAP-SAS",
+        linewidth=2,
+    )
     ax.plot(
         rows["sketch_and_apply"],
         times["sketch_and_apply"],
-        marker="o",
+        marker="^",  # triangle marker
         markersize=7.5,
         label="SAA-SAS",
+        linewidth=2,
     )
     ax.legend(loc="best")
     ax.set_xscale("log")
     ax.set_xlabel(r"$m$")
     ax.set_ylabel("Time (sec)")
-    ax.set_title(r"$n=10^3, \kappa(A) = 10^{10}, \| Ax^* - b \|_2 = 10^{-12}$")
+    ax.set_title(rf"$n={n}, \kappa(A) = {kappa}, \| Ax^* - b \|_2 = {beta}$")
     plt.savefig(
         visuals_dir.joinpath("benchmark_times.png"), dpi=600, bbox_inches="tight"
     )
@@ -80,21 +87,32 @@ def main() -> None:
 
     ax.plot(
         residual_errors["lstsq"][-1],
+        marker="o",
+        markersize=7.5,
         label="LSQR",
+        linewidth=2,
     )
-    # ax.plot(
-    #     residual_errors["sketch_and_precondition"][-1],
-    #     label="SAP-SAS",
-    # )
     ax.plot(
+        np.arange(len(residual_errors["sketch_and_precondition"])),
+        residual_errors["sketch_and_precondition"][-1],
+        marker="s",
+        markersize=7.5,
+        label="SAP-SAS",
+        linewidth=2,
+    )
+    ax.plot(
+        np.arange(len(residual_errors["sketch_and_apply"])),
         residual_errors["sketch_and_apply"][-1],
+        marker="^",
+        markersize=7.5,
         label="SAA-SAS",
+        linewidth=2,
     )
     ax.legend(loc="best")
     ax.set_yscale("log")
     ax.set_xlabel("Iterations")
     ax.set_ylabel(r"Residual Error $\frac{\|Ax - b\|_2}{\|b\|_2}$")
-    ax.set_title(r"$n=10^3, \kappa(A) = 10^{10}, \| Ax^* - b \|_2 = 10^{-12}$")
+    ax.set_title(rf"$n={n}, \kappa(A) = {kappa}, \| Ax^* - b \|_2 = {beta}$")
 
     plt.savefig(
         visuals_dir.joinpath("benchmark_residual_error.png"),
@@ -104,17 +122,27 @@ def main() -> None:
 
     fig = plt.figure(figsize=(6.5, 5))
     ax = fig.add_subplot(111)
+
     ax.plot(
         forward_errors["lstsq"][-1],
+        marker="o",
+        markersize=7.5,
         label="LSQR",
+        linewidth=2,
     )
-    # ax.plot(
-    #     forward_errors["sketch_and_precondition"][-1],
-    #     label="SAP-SAS",
-    # )
+    ax.plot(
+        forward_errors["sketch_and_precondition"][-1],
+        marker="s",
+        markersize=7.5,
+        label="SAP-SAS",
+        linewidth=2,
+    )
     ax.plot(
         forward_errors["sketch_and_apply"][-1],
+        marker="^",
+        markersize=7.5,
         label="SAA-SAS",
+        linewidth=2,
     )
     ax.legend(loc="best")
     # Create a FuncFormatter object with the formatting function
@@ -124,42 +152,42 @@ def main() -> None:
     ax.yaxis.set_major_formatter(formatter)
     ax.set_xlabel("Iterations")
     ax.set_ylabel(r"Forward Error $\frac{\|x - \hat{x}\|_2}{\|x\|_2}$")
-    ax.set_title(r"$n=10^3, \kappa(A) = 10^{10}, \| Ax^* - b \|_2 = 10^{-12}$")
+    ax.set_title(rf"$n={n}, \kappa(A) = {kappa}, \| Ax^* - b \|_2 = {beta}$")
     plt.savefig(
         visuals_dir.joinpath("benchmark_forward_error.png"),
         dpi=600,
         bbox_inches="tight",
     )
 
-    if backward_errors:
-        fig = plt.figure(figsize=(6.5, 5))
-        ax = fig.add_subplot(111)
-        ax.plot(
-            backward_errors["lstsq"][-1],
-            label="LSQR",
-        )
-        # ax.plot(
-        #     backward_errors["sketch_and_precondition"][-1],
-        #     label="SAP-SAS",
-        # )
-        ax.plot(
-            backward_errors["sketch_and_apply"][-1],
-            label="SAA-SAS",
-        )
-        ax.legend(loc="best")
-        # Create a FuncFormatter object with the formatting function
-        formatter = ticker.FuncFormatter(format_func)
+    # fig = plt.figure(figsize=(6.5, 5))
+    # ax = fig.add_subplot(111)
 
-        # Set the formatter for the y-axis tick labels
-        ax.yaxis.set_major_formatter(formatter)
-        ax.set_xlabel("Iterations")
-        ax.set_ylabel(r"Backward Error")
-        ax.set_title(r"$n=10^3, \kappa(A) = 10^{10}, \| Ax^* - b \|_2 = 10^{-12}$")
-        plt.savefig(
-            visuals_dir.joinpath("benchmark_backward_error.png"),
-            dpi=600,
-            bbox_inches="tight",
-        )
+    # ax.plot(
+    #     backward_errors["lstsq"][-1],
+    #     label="LSQR",
+    # )
+    # ax.plot(
+    #     backward_errors["sketch_and_precondition"][-1],
+    #     label="SAP-SAS",
+    # )
+    # ax.plot(
+    #     backward_errors["sketch_and_apply"][-1],
+    #     label="SAA-SAS",
+    # )
+    # ax.legend(loc="best")
+    # # Create a FuncFormatter object with the formatting function
+    # formatter = ticker.FuncFormatter(format_func)
+
+    # # Set the formatter for the y-axis tick labels
+    # ax.yaxis.set_major_formatter(formatter)
+    # ax.set_xlabel("Iterations")
+    # ax.set_ylabel(r"Backward Error")
+    # ax.set_title(rf"$n={n}, \kappa(A) = {kappa}, \| Ax^* - b \|_2 = {beta}$")
+    # plt.savefig(
+    #     visuals_dir.joinpath("benchmark_backward_error.png"),
+    #     dpi=600,
+    #     bbox_inches="tight",
+    # )
 
 
 if __name__ == "__main__":

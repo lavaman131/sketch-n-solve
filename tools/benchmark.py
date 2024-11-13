@@ -11,20 +11,17 @@ import pickle
 
 def main() -> None:
     seed = 42
+    # cpu warmup
     _ = np.empty((10000, 10000))
     output_dir = Path("outputs")
     benchmark_dir = output_dir.joinpath("benchmark")
     benchmark_dir.mkdir(exist_ok=True)
     precomputed_problems_dir = output_dir.joinpath("precomputed_problems")
-    problem_paths = list(precomputed_problems_dir.glob("*.h5"))
+    problem_paths = list(precomputed_problems_dir.glob("*.npz"))
     sketch_fn = "clarkson_woodruff"
     lsq = LeastSquares(sketch_fn, seed)
 
-    if benchmark_dir.joinpath("metadata.pkl").exists():
-        with open(benchmark_dir.joinpath("metadata.pkl"), "rb") as f:
-            metadata = pickle.load(f)
-    else:
-        metadata = defaultdict(list)
+    metadata = defaultdict(list)
 
     metric_callback = LeastSquaresMetricCallback(metadata=metadata)
 
@@ -32,17 +29,20 @@ def main() -> None:
         method="lstsq",
         problem_paths=problem_paths,
         lsq=lsq,
-        calculate_backward_error=True,
+        # calculate_backward_error=True,
+    )
+    metadata = metric_callback(
+        method="sketch_and_precondition",
+        problem_paths=problem_paths,
+        lsq=lsq,
+        # calculate_backward_error=True,
     )
     metadata = metric_callback(
         method="sketch_and_apply",
         problem_paths=problem_paths,
         lsq=lsq,
-        calculate_backward_error=True,
+        # calculate_backward_error=True,
     )
-    # metadata = metric_callback(
-    #     method="sketch_and_precondition", problem_paths=problem_paths, lsq=lsq
-    # )
 
     with open(benchmark_dir.joinpath("metadata.pkl"), "wb") as f:
         pickle.dump(metadata, f)
