@@ -355,13 +355,10 @@ def lsqr(
 
     # Add initial residual check here
     initial_residual = LA.norm(b - A.matvec(x))
-    if initial_residual < btol * bnorm:  # Check if initial residual is small enough
-        return x, x_hats, 1, 0, r1norm, r2norm, anorm, acond, arnorm, xnorm, var
-
-    # Reverse the order here from the original matlab code because
-    # there was an error on return when arnorm==0
     arnorm = alfa * beta
-    if arnorm == 0:
+    if (
+        initial_residual < btol * bnorm or arnorm == 0
+    ):  # Check if initial residual is small enough
         return x, x_hats, istop, itn, r1norm, r2norm, anorm, acond, arnorm, xnorm, var
 
     # Main iteration loop.
