@@ -26,6 +26,7 @@ def main() -> None:
     kappa = "10^{10}"
     beta = "10^{-10}"
     n = "10^3"
+    step_size = 10
     with open(benchmark_dir.joinpath("metadata.pkl"), "rb") as f:
         metadata = pickle.load(f)
 
@@ -41,10 +42,10 @@ def main() -> None:
         for trial in sorted_trials:
             times[method].append(trial["time_elapsed"])
             rows[method].append(trial["m"])
-            residual_errors[method].append(trial["residual_error"])
-            forward_errors[method].append(trial["forward_error"])
+            residual_errors[method].extend(trial["residual_error"])
+            forward_errors[method].extend(trial["forward_error"])
             if "backward_error" in trial:
-                backward_errors[method].append(trial["backward_error"])
+                backward_errors[method].extend(trial["backward_error"])
 
     fig = plt.figure(figsize=(6.5, 5))
     ax = fig.add_subplot(111)
@@ -86,23 +87,24 @@ def main() -> None:
     ax = fig.add_subplot(111)
 
     ax.plot(
-        residual_errors["lstsq"][-1],
+        np.arange(0, len(residual_errors["lstsq"]), step_size),
+        residual_errors["lstsq"][::step_size],
         marker="o",
         markersize=7.5,
         label="LSQR",
         linewidth=2,
     )
     ax.plot(
-        np.arange(len(residual_errors["sketch_and_precondition"])),
-        residual_errors["sketch_and_precondition"][-1],
+        np.arange(0, len(residual_errors["sketch_and_precondition"]), step_size),
+        residual_errors["sketch_and_precondition"][::step_size],
         marker="s",
         markersize=7.5,
         label="SAP-SAS",
         linewidth=2,
     )
     ax.plot(
-        np.arange(len(residual_errors["sketch_and_apply"])),
-        residual_errors["sketch_and_apply"][-1],
+        np.arange(0, len(residual_errors["sketch_and_apply"]), step_size),
+        residual_errors["sketch_and_apply"][::step_size],
         marker="^",
         markersize=7.5,
         label="SAA-SAS",
@@ -124,21 +126,24 @@ def main() -> None:
     ax = fig.add_subplot(111)
 
     ax.plot(
-        forward_errors["lstsq"][-1],
+        np.arange(0, len(forward_errors["lstsq"]), step_size),
+        forward_errors["lstsq"][::step_size],
         marker="o",
         markersize=7.5,
         label="LSQR",
         linewidth=2,
     )
     ax.plot(
-        forward_errors["sketch_and_precondition"][-1],
+        np.arange(0, len(forward_errors["sketch_and_precondition"]), step_size),
+        forward_errors["sketch_and_precondition"][::step_size],
         marker="s",
         markersize=7.5,
         label="SAP-SAS",
         linewidth=2,
     )
     ax.plot(
-        forward_errors["sketch_and_apply"][-1],
+        np.arange(0, len(forward_errors["sketch_and_apply"]), step_size),
+        forward_errors["sketch_and_apply"][::step_size],
         marker="^",
         markersize=7.5,
         label="SAA-SAS",
