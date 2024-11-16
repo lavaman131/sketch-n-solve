@@ -14,7 +14,8 @@ Sketch 'n Solve is over 100 times faster than traditional methods for solving la
 
 <p align="center">
     <img src="./assets/benchmarks/time.png" style="width: 70%">
-    <img src="./assets/benchmarks/error.png" style="width: 100%">
+    <img src="./assets/benchmarks/forward_error.png" style="width: 100%">
+    <img src="./assets/benchmarks/residual_error.png" style="width: 100%">
 </p>
 
 # 🚀 Getting Started 

@@ -5,6 +5,7 @@ from matplotlib import ticker
 import matplotlib.pyplot as plt
 import numpy as np
 import scienceplots  # noqa: F401
+from pprint import pprint
 
 plt.style.use(["science", "seaborn-v0_8-talk"])
 
@@ -23,9 +24,9 @@ def main() -> None:
     visuals_dir = output_dir.joinpath("visuals")
     visuals_dir.mkdir(exist_ok=True)
     benchmark_dir = output_dir.joinpath("benchmark")
-    kappa = "10^{10}"
-    beta = "10^{-10}"
-    n = "10^3"
+    kappa = format_func(10**10, None)[1:-1]
+    beta = format_func(10**-10, None)[1:-1]
+    n = format_func(10**3, None)[1:-1]
     step_size = 10
     with open(benchmark_dir.joinpath("metadata.pkl"), "rb") as f:
         metadata = pickle.load(f)
@@ -34,7 +35,6 @@ def main() -> None:
     rows = defaultdict(list)
     residual_errors = defaultdict(list)
     forward_errors = defaultdict(list)
-    backward_errors = defaultdict(list)
 
     for method in metadata.keys():
         trials = metadata[method]
@@ -42,10 +42,10 @@ def main() -> None:
         for trial in sorted_trials:
             times[method].append(trial["time_elapsed"])
             rows[method].append(trial["m"])
-            residual_errors[method].extend(trial["residual_error"])
-            forward_errors[method].extend(trial["forward_error"])
-            if "backward_error" in trial:
-                backward_errors[method].extend(trial["backward_error"])
+            residual_errors[method].append(trial["residual_error"])
+            forward_errors[method].append(trial["forward_error"])
+
+    m = format_func(rows["lstsq"][-1], None)[1:-1]
 
     fig = plt.figure(figsize=(6.5, 5))
     ax = fig.add_subplot(111)
@@ -77,7 +77,7 @@ def main() -> None:
     ax.legend(loc="best")
     ax.set_xscale("log")
     ax.set_xlabel(r"$m$")
-    ax.set_ylabel("Time (sec)")
+    ax.set_ylabel("Time (sec) ↓")
     ax.set_title(rf"$n={n}, \kappa(A) = {kappa}, \| Ax^* - b \|_2 = {beta}$")
     plt.savefig(
         visuals_dir.joinpath("benchmark_times.png"), dpi=600, bbox_inches="tight"
@@ -87,24 +87,24 @@ def main() -> None:
     ax = fig.add_subplot(111)
 
     ax.plot(
-        np.arange(0, len(residual_errors["lstsq"]), step_size),
-        residual_errors["lstsq"][::step_size],
+        np.arange(0, len(residual_errors["lstsq"][-1]), step_size),
+        residual_errors["lstsq"][-1][::step_size],
         marker="o",
         markersize=7.5,
         label="LSQR",
         linewidth=2,
     )
     ax.plot(
-        np.arange(0, len(residual_errors["sketch_and_precondition"]), step_size),
-        residual_errors["sketch_and_precondition"][::step_size],
+        np.arange(0, len(residual_errors["sketch_and_precondition"][-1]), step_size),
+        residual_errors["sketch_and_precondition"][-1][::step_size],
         marker="s",
         markersize=7.5,
         label="SAP-SAS",
         linewidth=2,
     )
     ax.plot(
-        np.arange(0, len(residual_errors["sketch_and_apply"]), step_size),
-        residual_errors["sketch_and_apply"][::step_size],
+        np.arange(0, len(residual_errors["sketch_and_apply"][-1]), step_size),
+        residual_errors["sketch_and_apply"][-1][::step_size],
         marker="^",
         markersize=7.5,
         label="SAA-SAS",
@@ -113,8 +113,8 @@ def main() -> None:
     ax.legend(loc="best")
     ax.set_yscale("log")
     ax.set_xlabel("Iterations")
-    ax.set_ylabel(r"Residual Error $\frac{\|Ax - b\|_2}{\|b\|_2}$")
-    ax.set_title(rf"$n={n}, \kappa(A) = {kappa}, \| Ax^* - b \|_2 = {beta}$")
+    ax.set_ylabel(r"Residual Error $\frac{\|Ax - b\|_2}{\|b\|_2}$ ↓")
+    ax.set_title(rf"$m={m}, n={n}, \kappa(A) = {kappa}, \| Ax^* - b \|_2 = {beta}$")
 
     plt.savefig(
         visuals_dir.joinpath("benchmark_residual_error.png"),
@@ -126,24 +126,24 @@ def main() -> None:
     ax = fig.add_subplot(111)
 
     ax.plot(
-        np.arange(0, len(forward_errors["lstsq"]), step_size),
-        forward_errors["lstsq"][::step_size],
+        np.arange(0, len(forward_errors["lstsq"][-1]), step_size),
+        forward_errors["lstsq"][-1][::step_size],
         marker="o",
         markersize=7.5,
         label="LSQR",
         linewidth=2,
     )
     ax.plot(
-        np.arange(0, len(forward_errors["sketch_and_precondition"]), step_size),
-        forward_errors["sketch_and_precondition"][::step_size],
+        np.arange(0, len(forward_errors["sketch_and_precondition"][-1]), step_size),
+        forward_errors["sketch_and_precondition"][-1][::step_size],
         marker="s",
         markersize=7.5,
         label="SAP-SAS",
         linewidth=2,
     )
     ax.plot(
-        np.arange(0, len(forward_errors["sketch_and_apply"]), step_size),
-        forward_errors["sketch_and_apply"][::step_size],
+        np.arange(0, len(forward_errors["sketch_and_apply"][-1]), step_size),
+        forward_errors["sketch_and_apply"][-1][::step_size],
         marker="^",
         markersize=7.5,
         label="SAA-SAS",
@@ -156,8 +156,8 @@ def main() -> None:
     # Set the formatter for the y-axis tick labels
     ax.yaxis.set_major_formatter(formatter)
     ax.set_xlabel("Iterations")
-    ax.set_ylabel(r"Forward Error $\frac{\|x - \hat{x}\|_2}{\|x\|_2}$")
-    ax.set_title(rf"$n={n}, \kappa(A) = {kappa}, \| Ax^* - b \|_2 = {beta}$")
+    ax.set_ylabel(r"Forward Error $\frac{\|x - \hat{x}\|_2}{\|x\|_2}$ ↓")
+    ax.set_title(rf"$m={m}, n={n}, \kappa(A) = {kappa}, \| Ax^* - b \|_2 = {beta}$")
     plt.savefig(
         visuals_dir.joinpath("benchmark_forward_error.png"),
         dpi=600,
