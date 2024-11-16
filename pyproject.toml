@@ -1,22 +1,25 @@
-[tool.poetry]
+[project]
 name = "sketch_n_solve"
 description = "Common sketch matrix construction methods for randomized numerical linear algebra (RandNLA)."
-authors = ["lavaman131 <lavaalex3@gmail.com>"]
-license = "MIT"
+authors = [{ name = "lavaman131", email = "lavaalex3@gmail.com" }]
+license = { text = "MIT" }
 readme = "README.md"
 version = "0.0.1"
-packages = [{ include = "sketch_n_solve", from = "src" }]
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.26.4",
+    "scipy>=1.13.0",
+    "matplotlib>=3.8.4",
+    "seaborn>=0.13.2",
+    "tqdm>=4.66.2",
+    "scienceplots>=2.1.1",
+    "numba>=0.59.1",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-numpy = "^1.26.4"
-scipy = "^1.13.0"
-matplotlib = "^3.8.4"
-seaborn = "^0.13.2"
-tqdm = "^4.66.2"
-scienceplots = "^2.1.1"
-numba = "^0.59.1"
+[tool.setuptools]
+packages = ["sketch_n_solve"]
+package-dir = { "" = "src" }
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

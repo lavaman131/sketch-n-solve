@@ -24,9 +24,12 @@ Sketch 'n Solve is over 50 times faster than traditional methods for solving lar
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate
-python -m pip install poetry
-poetry install
+
+# for general usage
+python -m pip install .
+
+# or for development
+python -m pip install -e .
 ```
 
 ## 🛠️ Usage
