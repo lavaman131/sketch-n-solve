@@ -10,7 +10,7 @@ Sketch 'n Solve is a Python library that implements basic randomized numerical l
 
 ## 🔥 Blazingly Fast and Precise
 
-Sketch 'n Solve is over 100 times faster than traditional methods for solving large-scale linear algebra problems while maintaining high accuracy. The library is designed to be efficient and scalable, making it ideal for solving large-scale linear algebra problems in a variety of applications. Don't believe me? Check out the benchmarks below (lower is better)!
+Sketch 'n Solve is over 50 times faster than traditional methods for solving large-scale linear algebra problems while maintaining high accuracy. The library is designed to be efficient and scalable, making it ideal for solving large-scale linear algebra problems in a variety of applications. Don't believe me? Check out the benchmarks below (lower is better)!
 
 <p align="center">
     <img src="./assets/benchmarks/time.png" style="width: 100%">
