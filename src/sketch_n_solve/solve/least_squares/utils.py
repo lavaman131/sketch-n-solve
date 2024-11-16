@@ -353,12 +353,30 @@ def lsqr(
     if log_x_hat:
         x_hats.append(x.copy())
 
-    # Add initial residual check here
-    initial_residual = LA.norm(b - A.matvec(x))
     arnorm = alfa * beta
-    if (
-        initial_residual < btol * bnorm or arnorm == 0
-    ):  # Check if initial residual is small enough
+
+    test1 = rnorm / bnorm
+    test2 = arnorm / (anorm * rnorm + eps)
+    test3 = 1 / (acond + eps)
+    t1 = test1 / (1 + anorm * xnorm / bnorm)
+    rtol = btol + atol * anorm * xnorm / bnorm
+
+    if 1 + test3 <= 1:
+        istop = 6
+    if 1 + test2 <= 1:
+        istop = 5
+    if 1 + t1 <= 1:
+        istop = 4
+
+    # Allow for tolerances set by the user.
+    if test3 <= ctol:
+        istop = 3
+    if test2 <= atol:
+        istop = 2
+    if test1 <= rtol:
+        istop = 1
+
+    if istop != 0:
         return x, x_hats, istop, itn, r1norm, r2norm, anorm, acond, arnorm, xnorm, var
 
     # Main iteration loop.
