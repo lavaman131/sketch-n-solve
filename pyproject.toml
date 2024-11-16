@@ -1,10 +1,10 @@
 [project]
 name = "sketch_n_solve"
 description = "Common sketch matrix construction methods for randomized numerical linear algebra (RandNLA)."
-authors = [{ name = "lavaman131", email = "lavaalex3@gmail.com" }]
+authors = [{ name = "Alex Lavaee", email = "lavaalex3@gmail.com" }]
 license = { text = "MIT" }
 readme = "README.md"
-version = "0.0.1"
+version = "0.0.2"
 requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.26.4",
@@ -16,10 +16,10 @@ dependencies = [
     "numba>=0.59.1",
 ]
 
-[tool.setuptools]
-packages = ["sketch_n_solve"]
-package-dir = { "" = "src" }
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["sketch_n_solve*"]
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"

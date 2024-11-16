@@ -5,7 +5,6 @@ from typing import List, Optional, Tuple
 from scipy.sparse.linalg import aslinearoperator
 from scipy.sparse.linalg import LinearOperator
 
-eps = np.finfo(np.float64).eps
 
 
 def _sym_ortho(a: float, b: float) -> Tuple[float, float, float]:
@@ -291,6 +290,7 @@ def lsqr(
     approximate solution to the corresponding least-squares problem. `r1norm`
     contains the norm of the minimal residual that was found.
     """
+    eps = np.finfo(np.float64).eps
     A = aslinearoperator(A)
     b = np.atleast_1d(b)
     if b.ndim > 1:
@@ -377,10 +377,10 @@ def lsqr(
         istop = 1
 
     if istop != 0:
-        return x, x_hats, istop, itn, r1norm, r2norm, anorm, acond, arnorm, xnorm, var
+        return x, x_hats, istop, itn, r1norm, r2norm, anorm, acond, arnorm, xnorm, var # type: ignore
 
     # Main iteration loop.
-    while itn < iter_lim:
+    while itn < iter_lim: # type: ignore
         itn = itn + 1
         # Perform the next step of the bidiagonalization to obtain the
         # next  beta, u, alfa, v. These satisfy the relations
@@ -412,7 +412,7 @@ def lsqr(
 
         # Use a plane rotation to eliminate the subdiagonal element (beta)
         # of the lower-bidiagonal matrix, giving an upper-bidiagonal matrix.
-        cs, sn, rho = _sym_ortho(rhobar1, beta)
+        cs, sn, rho = _sym_ortho(rhobar1, beta) # type: ignore
 
         theta = sn * alfa
         rhobar = -cs * alfa
@@ -501,4 +501,4 @@ def lsqr(
         if istop != 0:
             break
 
-    return x, x_hats, istop, itn, r1norm, r2norm, anorm, acond, arnorm, xnorm, var
+    return x, x_hats, istop, itn, r1norm, r2norm, anorm, acond, arnorm, xnorm, var # type: ignore

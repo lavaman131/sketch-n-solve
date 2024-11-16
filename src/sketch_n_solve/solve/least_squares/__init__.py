@@ -28,7 +28,7 @@ class LeastSquares(Solver):
         iter_lim: Optional[int] = 100,
         log_x_hat: bool = False,
         **kwargs: Any,
-    ) -> Tuple[np.ndarray, float, List[np.ndarray], int]:
+    ) -> Tuple[np.ndarray, List[np.ndarray], int, float]:
         """Solves the least squares problem using sketch and preconditioning as described in https://arxiv.org/pdf/2302.07202.pdf.
 
         Parameters
@@ -52,16 +52,18 @@ class LeastSquares(Solver):
         -------
         x : (n,) np.ndarray
             The solution to the least squares problem.
-        time_elapsed : float
-            Time taken to solve the least squares problem.
         x_hats : List[np.ndarray]
             List of intermediate solutions if log_x_hat is True.
+        istop : int
+            The reason the least squares solver stopped.
+        time_elapsed : float
+            Time taken to solve the least squares problem.
         """
         A, S = self.sketch(A, **kwargs)
-        x, time_elapsed, x_hats, istop = _sketch_and_precondition(
-            A, b, S, use_sketch_and_solve_x_0, tolerance, iter_lim, log_x_hat
+        x, x_hats, istop, time_elapsed = _sketch_and_precondition(
+            A, b, S, use_sketch_and_solve_x_0, tolerance, iter_lim, log_x_hat # type: ignore
         )
-        return x, time_elapsed, x_hats, istop
+        return x, x_hats, istop, time_elapsed
 
     def __call__(
         self,
@@ -71,7 +73,7 @@ class LeastSquares(Solver):
         iter_lim: Optional[int] = 100,
         log_x_hat: bool = False,
         **kwargs: Any,
-    ) -> Tuple[np.ndarray, float, List[np.ndarray], int]:
+    ) -> Tuple[np.ndarray, List[np.ndarray], int, float]:
         """Solves the least squares problem using sketch-and-apply as described in https://arxiv.org/pdf/2302.07202.pdf.
 
         Parameters
@@ -91,10 +93,12 @@ class LeastSquares(Solver):
         -------
         x : (n,) np.ndarray
             The solution to the least squares problem.
-        time_elapsed : float
-            Time taken to solve the least squares problem.
         x_hats : List[np.ndarray]
             List of intermediate solutions if log_x_hat is True.
+        istop : int
+            The reason the least squares solver stopped.
+        time_elapsed : float
+            Time taken to solve the least squares problem.
         """
         return self.sketch_and_apply(A, b, tolerance, iter_lim, log_x_hat, **kwargs)
 
@@ -106,7 +110,7 @@ class LeastSquares(Solver):
         iter_lim: Optional[int] = 100,
         log_x_hat: bool = False,
         **kwargs: Any,
-    ) -> Tuple[np.ndarray, float, List[np.ndarray], int]:
+    ) -> Tuple[np.ndarray, List[np.ndarray], int, float]:
         """Solves the least squares problem using sketch-and-apply as described in https://arxiv.org/pdf/2302.07202.pdf.
 
         Parameters
@@ -126,24 +130,28 @@ class LeastSquares(Solver):
         -------
         x : (n,) np.ndarray
             The solution to the least squares problem.
-        time_elapsed : float
-            Time taken to solve the least squares problem.
         x_hats : List[np.ndarray]
             List of intermediate solutions if log_x_hat is True.
+        istop : int
+            The reason the least squares solver stopped.
+        time_elapsed : float
+            Time taken to solve the least squares problem.
         """
         A, S = self.sketch(A, **kwargs)
-        x, time_elapsed_apply, x_hats_apply, istop = _sketch_and_apply(
-            A, b, S, tolerance, iter_lim // 2, log_x_hat
+        iter_lim = iter_lim // 2 if iter_lim is not None else None
+        x, x_hats_apply, istop, time_elapsed_apply = _sketch_and_apply(
+            A, b, S, tolerance, iter_lim, log_x_hat # type: ignore
         )
 
         if istop != 0:
-            return x, time_elapsed_apply, x_hats_apply, istop
-        x, time_elapsed_smoothed, x_hats_smoothed, istop = _smoothed_sketch_and_apply(
-            A, b, S, tolerance, iter_lim // 2, self.seed, log_x_hat
+            return x, x_hats_apply, istop, time_elapsed_apply
+        
+        x, x_hats_smoothed, istop, time_elapsed_smoothed = _smoothed_sketch_and_apply(
+            A, b, S, tolerance, iter_lim, self.seed, log_x_hat # type: ignore
         )
         return (
             x,
-            time_elapsed_apply + time_elapsed_smoothed,
             x_hats_apply + x_hats_smoothed,
             istop,
+            time_elapsed_apply + time_elapsed_smoothed,
         )

@@ -10,7 +10,7 @@ Sketch 'n Solve is a Python library that implements basic randomized numerical l
 
 ## 🔥 Blazingly Fast and Precise
 
-Sketch 'n Solve is over 50 times faster than traditional methods for solving large-scale linear algebra problems while maintaining high accuracy. The library is designed to be efficient and scalable, making it ideal for solving large-scale linear algebra problems in a variety of applications. Don't believe me? Check out the benchmarks below (lower is better)!
+Sketch 'n Solve is over 50 times faster than traditional methods for solving large-scale linear algebra problems while maintaining high accuracy (notice how the forward error is much lower for Sketch 'n Solve which gets even worse for more ill-conditioned systems). The library is designed to be efficient and scalable, making it ideal for solving large-scale linear algebra problems in a variety of applications. Don't believe me? Check out the benchmarks below (lower is better)!
 
 <p align="center">
     <img src="./assets/benchmarks/time.png" style="width: 100%">
@@ -51,6 +51,7 @@ help(sketch.sparse.clarkson_woodruff)
 ### ⚡️ Fast Sparse Sketch Operators
 
 ```python
+import time
 import numpy as np
 import numpy.linalg as LA
 from sketch_n_solve.solve.least_squares import LeastSquares
@@ -65,17 +66,14 @@ x = rng.standard_normal(1000)
 b = A @ x
 lsq = LeastSquares(sketch_fn, seed)
 
-x_hat, time_elapsed, x_hats, istop = lsq(A, b)
+x_hat, _, istop, time_elapsed = lsq(A, b)
 
 print("residual", LA.norm(A @ x_hat - A @ x))
 
 is_close = np.allclose(x_hat, x)
 print(f"x_hat is close to x => {is_close}")
 
-assert is_close, "Something went wrong!"
-
-print(f"Least-squares solving finished in {time_elapsed} seconds.")
-
+print(f"Sketch and solve finished in {time_elapsed} seconds.")
 ```
 
 ### 🎨 Generate Sketch Matrix

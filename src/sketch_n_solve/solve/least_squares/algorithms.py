@@ -19,7 +19,7 @@ def _sketch_and_precondition(
     iter_lim: Optional[int] = 100,
     log_x_hat: bool = False,
     **kwargs: Any,
-) -> Tuple[np.ndarray, float, List[np.ndarray], int]:
+) -> Tuple[np.ndarray, List[np.ndarray], int, float]:
     """Solves the least squares problem using sketch-and-precondition as described in https://arxiv.org/pdf/2302.07202.pdf."""
     assert (
         iter_lim is None or iter_lim > 0
@@ -34,13 +34,13 @@ def _sketch_and_precondition(
     c = S.matvec(b)
 
     # Step 3: Compute QR factorization of B
-    Q, R = qr(B, mode="economic", check_finite=False, pivoting=False)
+    Q, R = qr(B, mode="economic", check_finite=False, pivoting=False) # type: ignore
 
     R_inv, _ = inv_triangular(R, lower=0)
 
     # Step 4: Compute initial guess x_0 = R^(-1)Q^T c
     if use_sketch_and_solve_x_0:
-        x_0 = R_inv @ (Q.T @ c)
+        x_0 = R_inv @ (Q.T @ c) # type: ignore
     else:
         x_0 = None
 
@@ -52,8 +52,8 @@ def _sketch_and_precondition(
 
     linear_op = LinearOperator(
         shape=A.shape,
-        matvec=matvec,
-        rmatvec=rmatvec,
+        matvec=matvec, # type: ignore
+        rmatvec=rmatvec, # type: ignore
         dtype=A.dtype,
     )
 
@@ -70,7 +70,7 @@ def _sketch_and_precondition(
     end_time = time.perf_counter()
     time_elapsed = end_time - start_time
 
-    return x, time_elapsed, x_hats, istop
+    return x, x_hats, istop, time_elapsed
 
 
 def solve(A: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -103,7 +103,7 @@ def _sketch_and_apply(
     iter_lim: Optional[int] = 100,
     log_x_hat: bool = False,
     **kwargs: Any,
-) -> Tuple[np.ndarray, float, List[np.ndarray], int]:
+) -> Tuple[np.ndarray, List[np.ndarray], int, float]:
     """Solves the least squares problem using sketch-and-apply as described in https://arxiv.org/pdf/2302.07202.pdf.
 
     Parameters
@@ -144,7 +144,7 @@ def _sketch_and_apply(
     start_time = time.perf_counter()
     B = S.matmat(A)
     c = S.matvec(b)
-    Q, R = qr(B, mode="economic", check_finite=False, pivoting=False)
+    Q, R = qr(B, mode="economic", check_finite=False, pivoting=False) # type: ignore
     z_0 = (Q.T @ c).squeeze()  # type: ignore
     z, z_hats, istop, *_ = lsqr(
         A=Q,  # type: ignore
@@ -163,7 +163,7 @@ def _sketch_and_apply(
     if log_x_hat:
         x_hats = [solve(R, z_hat) for z_hat in z_hats]
 
-    return x, time_elapsed, x_hats, istop
+    return x, x_hats, istop, time_elapsed
 
 
 def _smoothed_sketch_and_apply(
@@ -175,7 +175,7 @@ def _smoothed_sketch_and_apply(
     seed: Optional[int] = 42,
     log_x_hat: bool = False,
     **kwargs: Any,
-) -> Tuple[np.ndarray, float, List[np.ndarray], int]:
+) -> Tuple[np.ndarray, List[np.ndarray], int, float]:
     """Solves the least squares problem using smoothed sketch-and-apply as described in https://arxiv.org/pdf/2302.07202.pdf.
 
     Parameters
@@ -220,10 +220,10 @@ def _smoothed_sketch_and_apply(
     sigma = 10 * LA.norm(A) * np.finfo(float).eps
     G = rng.standard_normal(size=(m, n))
     A_tilde = A + sigma * G / np.sqrt(m)
-    x, time_elapsed, x_hats, istop = _sketch_and_apply(
+    x, x_hats, istop, time_elapsed = _sketch_and_apply(
         A_tilde, b, S, tolerance, iter_lim, log_x_hat=log_x_hat
     )
     end_time = time.perf_counter()
     time_elapsed = end_time - start_time
 
-    return x, time_elapsed, x_hats, istop
+    return x, x_hats, istop, time_elapsed
