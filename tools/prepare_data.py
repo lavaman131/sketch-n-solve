@@ -13,7 +13,7 @@ def main() -> None:
     output_dir = Path("outputs")
     output_dir.mkdir(exist_ok=True)
     default_kwargs = {"cond": 1e10, "beta": 1e-10}
-    m = [1e4, 1e5, 1e6, 1e7, 1e8]
+    m = [5e3, 1e4, 5e4, 1e5, 5e5, 1e6]
     n = 1000
     dims = [(m, n) for m in m]
     config = [{**default_kwargs, "m": m, "n": n} for m, n in dims]
